@@ -142,7 +142,10 @@ export const procurarTrabalhadores = createServerFn({ method: "GET" })
 
     return (rows ?? [])
       .filter((r: { user_id: string }) => r.user_id !== userId)
-      .map((r: { user_id: string }) => ({ ...r, desbloqueado: desbloqueados.includes(r.user_id) }));
+      .map((r) => ({
+        ...(r as unknown as ResultadoTrabalhador),
+        desbloqueado: desbloqueados.includes((r as { user_id: string }).user_id),
+      }));
   });
 
 export const desbloquearContacto = createServerFn({ method: "POST" })
