@@ -183,7 +183,7 @@ function PainelEmpresa() {
               </p>
             )}
             {(candidaturas.data ?? []).map((raw) => {
-              const c = raw as {
+              const c = raw as unknown as {
                 id: string;
                 estado: string;
                 mensagem: string;

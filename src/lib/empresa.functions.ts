@@ -327,9 +327,21 @@ export const candidaturasRecebidas = createServerFn({ method: "GET" })
       .in("user_id", workerIds);
 
     const mapa = new Map((perfis ?? []).map((p: { user_id: string }) => [p.user_id, p]));
-    return (data ?? []).map((a: { worker_id: string }) => ({
-      ...a,
-      trabalhador: mapa.get(a.worker_id) ?? null,
+    return (data ?? []).map((a) => ({
+      ...(a as unknown as {
+        id: string;
+        estado: string;
+        mensagem: string;
+        created_at: string;
+        worker_id: string;
+        job_posts: { id: string; titulo: string; data_turno: string } | null;
+      }),
+      trabalhador:
+        (mapa.get((a as { worker_id: string }).worker_id) as unknown as {
+          nome_publico: string;
+          titulo: string;
+          foco: string;
+        }) ?? null,
     }));
   });
 

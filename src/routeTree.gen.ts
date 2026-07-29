@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as OfertasIndexRouteImport } from './routes/ofertas/index'
 import { Route as AuthenticatedTrabalhadorIndexRouteImport } from './routes/_authenticated/trabalhador/index'
+import { Route as AuthenticatedEmpresaIndexRouteImport } from './routes/_authenticated/empresa/index'
 import { Route as AuthenticatedTrabalhadorPerfilRouteImport } from './routes/_authenticated/trabalhador/perfil'
 import { Route as AuthenticatedEmpresaRegistoRouteImport } from './routes/_authenticated/empresa/registo'
 import { Route as AuthenticatedEmpresaProcurarRouteImport } from './routes/_authenticated/empresa/procurar'
@@ -43,6 +44,12 @@ const AuthenticatedTrabalhadorIndexRoute =
   AuthenticatedTrabalhadorIndexRouteImport.update({
     id: '/trabalhador/',
     path: '/trabalhador/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedEmpresaIndexRoute =
+  AuthenticatedEmpresaIndexRouteImport.update({
+    id: '/empresa/',
+    path: '/empresa/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedTrabalhadorPerfilRoute =
@@ -85,6 +92,7 @@ export interface FileRoutesByFullPath {
   '/empresa/procurar': typeof AuthenticatedEmpresaProcurarRoute
   '/empresa/registo': typeof AuthenticatedEmpresaRegistoRoute
   '/trabalhador/perfil': typeof AuthenticatedTrabalhadorPerfilRoute
+  '/empresa/': typeof AuthenticatedEmpresaIndexRoute
   '/trabalhador/': typeof AuthenticatedTrabalhadorIndexRoute
 }
 export interface FileRoutesByTo {
@@ -96,6 +104,7 @@ export interface FileRoutesByTo {
   '/empresa/procurar': typeof AuthenticatedEmpresaProcurarRoute
   '/empresa/registo': typeof AuthenticatedEmpresaRegistoRoute
   '/trabalhador/perfil': typeof AuthenticatedTrabalhadorPerfilRoute
+  '/empresa': typeof AuthenticatedEmpresaIndexRoute
   '/trabalhador': typeof AuthenticatedTrabalhadorIndexRoute
 }
 export interface FileRoutesById {
@@ -109,6 +118,7 @@ export interface FileRoutesById {
   '/_authenticated/empresa/procurar': typeof AuthenticatedEmpresaProcurarRoute
   '/_authenticated/empresa/registo': typeof AuthenticatedEmpresaRegistoRoute
   '/_authenticated/trabalhador/perfil': typeof AuthenticatedTrabalhadorPerfilRoute
+  '/_authenticated/empresa/': typeof AuthenticatedEmpresaIndexRoute
   '/_authenticated/trabalhador/': typeof AuthenticatedTrabalhadorIndexRoute
 }
 export interface FileRouteTypes {
@@ -122,6 +132,7 @@ export interface FileRouteTypes {
     | '/empresa/procurar'
     | '/empresa/registo'
     | '/trabalhador/perfil'
+    | '/empresa/'
     | '/trabalhador/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -133,6 +144,7 @@ export interface FileRouteTypes {
     | '/empresa/procurar'
     | '/empresa/registo'
     | '/trabalhador/perfil'
+    | '/empresa'
     | '/trabalhador'
   id:
     | '__root__'
@@ -145,6 +157,7 @@ export interface FileRouteTypes {
     | '/_authenticated/empresa/procurar'
     | '/_authenticated/empresa/registo'
     | '/_authenticated/trabalhador/perfil'
+    | '/_authenticated/empresa/'
     | '/_authenticated/trabalhador/'
   fileRoutesById: FileRoutesById
 }
@@ -192,6 +205,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTrabalhadorIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/empresa/': {
+      id: '/_authenticated/empresa/'
+      path: '/empresa'
+      fullPath: '/empresa/'
+      preLoaderRoute: typeof AuthenticatedEmpresaIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/trabalhador/perfil': {
       id: '/_authenticated/trabalhador/perfil'
       path: '/trabalhador/perfil'
@@ -236,6 +256,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedEmpresaProcurarRoute: typeof AuthenticatedEmpresaProcurarRoute
   AuthenticatedEmpresaRegistoRoute: typeof AuthenticatedEmpresaRegistoRoute
   AuthenticatedTrabalhadorPerfilRoute: typeof AuthenticatedTrabalhadorPerfilRoute
+  AuthenticatedEmpresaIndexRoute: typeof AuthenticatedEmpresaIndexRoute
   AuthenticatedTrabalhadorIndexRoute: typeof AuthenticatedTrabalhadorIndexRoute
 }
 
@@ -245,6 +266,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedEmpresaProcurarRoute: AuthenticatedEmpresaProcurarRoute,
   AuthenticatedEmpresaRegistoRoute: AuthenticatedEmpresaRegistoRoute,
   AuthenticatedTrabalhadorPerfilRoute: AuthenticatedTrabalhadorPerfilRoute,
+  AuthenticatedEmpresaIndexRoute: AuthenticatedEmpresaIndexRoute,
   AuthenticatedTrabalhadorIndexRoute: AuthenticatedTrabalhadorIndexRoute,
 }
 
