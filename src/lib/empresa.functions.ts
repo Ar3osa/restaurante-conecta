@@ -94,6 +94,22 @@ export const criarEmpresa = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export type ResultadoTrabalhador = {
+  user_id: string;
+  nome_publico: string;
+  titulo: string;
+  bio: string;
+  anos_experiencia: number;
+  foco: string;
+  skill_bartender: number;
+  skill_servico_mesa: number;
+  skill_backoffice: number;
+  concelhos: string[];
+  dias: string[];
+  horarios: string[];
+  procura_ativa: boolean;
+};
+
 export const procurarTrabalhadores = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
