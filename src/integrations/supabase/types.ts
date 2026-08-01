@@ -330,6 +330,7 @@ export type Database = {
           bio: string
           concelhos: string[]
           created_at: string
+          demo: boolean
           dias: string[]
           foco: Database["public"]["Enums"]["job_role"]
           horarios: string[]
@@ -348,6 +349,7 @@ export type Database = {
           bio?: string
           concelhos?: string[]
           created_at?: string
+          demo?: boolean
           dias?: string[]
           foco?: Database["public"]["Enums"]["job_role"]
           horarios?: string[]
@@ -366,6 +368,7 @@ export type Database = {
           bio?: string
           concelhos?: string[]
           created_at?: string
+          demo?: boolean
           dias?: string[]
           foco?: Database["public"]["Enums"]["job_role"]
           horarios?: string[]
