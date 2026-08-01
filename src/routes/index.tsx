@@ -58,6 +58,11 @@ function Index() {
                   Sou restaurante / bar
                 </Link>
               </Button>
+              <Button size="lg" variant="ghost" asChild>
+                <Link to="/auth" search={{ modo: "entrar" }}>
+                  Já tenho conta · Entrar
+                </Link>
+              </Button>
             </div>
             <p className="mt-4 text-sm text-muted-foreground">
               Conta de trabalhador sempre gratuita. As casas pagam apenas 1&nbsp;€ por contacto
@@ -148,6 +153,11 @@ function Index() {
               </Button>
               <Button asChild size="lg" variant="outline">
                 <Link to="/ofertas">Ver ofertas de turno</Link>
+              </Button>
+              <Button asChild size="lg" variant="ghost">
+                <Link to="/auth" search={{ modo: "entrar" }}>
+                  Entrar
+                </Link>
               </Button>
             </div>
           </div>
