@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Lock, Mail, Phone, Sparkles } from "lucide-react";
+import { CalendarClock, Lock, Mail, MapPin, Phone, Sparkles } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { ConcelhoSelect } from "@/components/ConcelhoSelect";
 import { StarRating } from "@/components/StarRating";
@@ -152,9 +152,12 @@ function Procurar() {
               <Card key={t.user_id}>
                 <CardContent className="space-y-4 pt-6">
                   <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <h2 className="font-semibold">{t.nome_publico}</h2>
-                      <p className="text-sm text-muted-foreground">{t.titulo}</p>
+                    <div className="flex items-center gap-3">
+                      <FotoBloqueada nome={t.nome_publico} desbloqueada={!!contacto} />
+                      <div>
+                        <h2 className="font-semibold">{t.nome_publico}</h2>
+                        <p className="text-sm text-muted-foreground">{t.titulo}</p>
+                      </div>
                     </div>
                     <div className="flex flex-col items-end gap-1">
                       <Badge variant="secondary">{FUNCAO_LABEL[t.foco as Funcao]}</Badge>
@@ -174,14 +177,27 @@ function Procurar() {
                     <Linha label="Backoffice" value={t.skill_backoffice} />
                   </div>
 
-                  <div className="flex flex-wrap gap-1.5">
-                    {(t.concelhos ?? []).slice(0, 4).map((c: string) => (
-                      <Badge key={c} variant="outline">
-                        {c}
-                      </Badge>
-                    ))}
-                    {(t.concelhos ?? []).length > 4 && (
-                      <Badge variant="outline">+{(t.concelhos ?? []).length - 4}</Badge>
+                  <div className="space-y-2">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
+                      {(t.concelhos ?? []).slice(0, 4).map((c: string) => (
+                        <Badge key={c} variant="outline">
+                          {c}
+                        </Badge>
+                      ))}
+                      {(t.concelhos ?? []).length > 4 && (
+                        <Badge variant="outline">+{(t.concelhos ?? []).length - 4}</Badge>
+                      )}
+                    </div>
+                    {((t.dias ?? []).length > 0 || (t.horarios ?? []).length > 0) && (
+                      <p className="flex items-start gap-1.5 text-xs text-muted-foreground">
+                        <CalendarClock className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                        <span>
+                          {[(t.dias ?? []).join(", "), (t.horarios ?? []).join(", ")]
+                            .filter(Boolean)
+                            .join(" · ")}
+                        </span>
+                      </p>
                     )}
                   </div>
 
@@ -244,6 +260,37 @@ function Linha({ label, value }: { label: string; value: number }) {
     <div className="flex items-center justify-between">
       <span className="text-sm text-muted-foreground">{label}</span>
       <StarRating value={value ?? 0} size="sm" label={label} />
+    </div>
+  );
+}
+
+function FotoBloqueada({ nome, desbloqueada }: { nome: string; desbloqueada: boolean }) {
+  const iniciais = nome
+    .split(" ")
+    .map((p) => p[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+  return (
+    <div
+      className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full bg-muted"
+      title={desbloqueada ? nome : "Foto visível após desbloquear o contacto"}
+      aria-label={desbloqueada ? nome : "Foto bloqueada"}
+    >
+      <div
+        className={
+          "flex h-full w-full items-center justify-center text-sm font-semibold text-muted-foreground" +
+          (desbloqueada ? "" : " select-none blur-[6px]")
+        }
+      >
+        {iniciais}
+      </div>
+      {!desbloqueada && (
+        <div className="absolute inset-0 flex items-center justify-center bg-foreground/10">
+          <Lock className="h-4 w-4 text-foreground/70" />
+        </div>
+      )}
     </div>
   );
 }
