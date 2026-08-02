@@ -50,10 +50,64 @@ export function Navbar() {
         </nav>
 
         <div className="flex items-center gap-2">
+          {/* Menu de navegação em mobile */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild className="md:hidden">
+              <Button variant="outline" size="icon" aria-label="Abrir menu">
+                <Menu className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuItem asChild>
+                <Link to="/ofertas">Ofertas de turno</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/trabalhadores">Trabalhadores</Link>
+              </DropdownMenuItem>
+              {eEmpregador && (
+                <DropdownMenuItem asChild>
+                  <Link to="/empresa/procurar">Procurar pessoal</Link>
+                </DropdownMenuItem>
+              )}
+              {user && (
+                <>
+                  <DropdownMenuItem asChild>
+                    <Link to={painel}>O meu painel</Link>
+                  </DropdownMenuItem>
+                  {eTrabalhador && (
+                    <DropdownMenuItem asChild>
+                      <Link to="/trabalhador/perfil">Editar perfil</Link>
+                    </DropdownMenuItem>
+                  )}
+                  {eEmpregador && (
+                    <DropdownMenuItem asChild>
+                      <Link to="/empresa/creditos">Créditos</Link>
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuItem onClick={sair}>
+                    <LogOut className="mr-2 h-4 w-4" /> Terminar sessão
+                  </DropdownMenuItem>
+                </>
+              )}
+              {!user && (
+                <>
+                  <DropdownMenuItem asChild>
+                    <Link to="/auth">Entrar</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/auth" search={{ modo: "registo" }}>
+                      Criar conta
+                    </Link>
+                  </DropdownMenuItem>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-2">
+                <Button variant="outline" size="sm" className="hidden gap-2 md:inline-flex">
                   <Menu className="h-4 w-4" />
                   <span className="max-w-[10rem] truncate">{user.email}</span>
                 </Button>
@@ -81,7 +135,7 @@ export function Navbar() {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <>
+            <div className="hidden items-center gap-2 md:flex">
               <Button variant="ghost" size="sm" asChild>
                 <Link to="/auth">Entrar</Link>
               </Button>
@@ -90,7 +144,7 @@ export function Navbar() {
                   Criar conta
                 </Link>
               </Button>
-            </>
+            </div>
           )}
         </div>
       </div>
