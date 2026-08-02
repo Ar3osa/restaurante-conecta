@@ -70,9 +70,24 @@ export function Navbar() {
                 </DropdownMenuItem>
               )}
               {user && (
-                <DropdownMenuItem asChild>
-                  <Link to={painel}>O meu painel</Link>
-                </DropdownMenuItem>
+                <>
+                  <DropdownMenuItem asChild>
+                    <Link to={painel}>O meu painel</Link>
+                  </DropdownMenuItem>
+                  {eTrabalhador && (
+                    <DropdownMenuItem asChild>
+                      <Link to="/trabalhador/perfil">Editar perfil</Link>
+                    </DropdownMenuItem>
+                  )}
+                  {eEmpregador && (
+                    <DropdownMenuItem asChild>
+                      <Link to="/empresa/creditos">Créditos</Link>
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuItem onClick={sair}>
+                    <LogOut className="mr-2 h-4 w-4" /> Terminar sessão
+                  </DropdownMenuItem>
+                </>
               )}
               {!user && (
                 <>
