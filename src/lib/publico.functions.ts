@@ -74,3 +74,41 @@ export const estatisticas = createServerFn({ method: "GET" }).handler(async () =
   ]);
   return { ofertas: ofertas.count ?? 0, empresas: empresas.count ?? 0 };
 });
+
+const SELECT_TRABALHADOR =
+  "user_id, nome_publico, titulo, bio, anos_experiencia, foco, skill_bartender, skill_servico_mesa, skill_backoffice, concelhos, dias, horarios, procura_ativa";
+
+export const listarTrabalhadoresPublico = createServerFn({ method: "GET" })
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        concelho: z.string().max(80).optional(),
+        competencia: z.enum(["bartender", "servico_mesa", "backoffice"]).optional(),
+        minimo: z.number().int().min(1).max(5).optional(),
+      })
+      .parse(input ?? {}),
+  )
+  .handler(async ({ data }) => {
+    const supabase = clientePublico();
+    let query = supabase
+      .from("worker_profiles")
+      .select(SELECT_TRABALHADOR)
+      .eq("visivel", true)
+      .order("procura_ativa", { ascending: false })
+      .limit(60);
+
+    if (data.concelho) query = query.contains("concelhos", [data.concelho]);
+    if (data.competencia && data.minimo) {
+      const coluna =
+        data.competencia === "bartender"
+          ? "skill_bartender"
+          : data.competencia === "servico_mesa"
+            ? "skill_servico_mesa"
+            : "skill_backoffice";
+      query = query.gte(coluna, data.minimo);
+    }
+
+    const { data: rows, error } = await query;
+    if (error) throw new Error(error.message);
+    return rows ?? [];
+  });
