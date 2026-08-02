@@ -14,7 +14,9 @@ import { cn } from "@/lib/utils";
 type Papel = "trabalhador" | "empregador";
 
 export const Route = createFileRoute("/auth")({
-  validateSearch: (search: Record<string, unknown>) => ({
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): { modo?: "entrar" | "registo"; papel?: Papel } => ({
     modo: search.modo === "registo" ? ("registo" as const) : ("entrar" as const),
     papel:
       search.papel === "empregador"
