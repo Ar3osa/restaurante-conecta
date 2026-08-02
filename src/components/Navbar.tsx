@@ -39,6 +39,9 @@ export function Navbar() {
           <Button variant="ghost" asChild>
             <Link to="/ofertas">Ofertas de turno</Link>
           </Button>
+          <Button variant="ghost" asChild>
+            <Link to="/trabalhadores">Trabalhadores</Link>
+          </Button>
           {eEmpregador && (
             <Button variant="ghost" asChild>
               <Link to="/empresa/procurar">Procurar pessoal</Link>
