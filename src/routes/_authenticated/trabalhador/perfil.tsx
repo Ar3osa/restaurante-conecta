@@ -398,7 +398,7 @@ function PerfilTrabalhador() {
                 </div>
               </div>
               <div>
-                <Label className="mb-2 block">Horários</Label>
+                <Label className="mb-2 block">Regime</Label>
                 <div className="flex flex-wrap gap-2">
                   {HORARIOS.map((h) => (
                     <Chip
