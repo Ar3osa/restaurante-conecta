@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { CalendarClock, Lock, MapPin, Sparkles } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
-import { ConcelhoSelect } from "@/components/ConcelhoSelect";
+import { DistritoSelect } from "@/components/DistritoSelect";
 import { StarRating } from "@/components/StarRating";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -37,16 +37,16 @@ export const Route = createFileRoute("/trabalhadores/")({
 
 function TrabalhadoresPublico() {
   const listar = useServerFn(listarTrabalhadoresPublico);
-  const [concelho, setConcelho] = useState("__todos");
+  const [distrito, setDistrito] = useState("__todos");
   const [competencia, setCompetencia] = useState("__todas");
   const [minimo, setMinimo] = useState("3");
 
   const { data, isLoading } = useQuery({
-    queryKey: ["trabalhadores-publico", concelho, competencia, minimo],
+    queryKey: ["trabalhadores-publico", distrito, competencia, minimo],
     queryFn: () =>
       listar({
         data: {
-          concelho: concelho === "__todos" ? undefined : concelho,
+          distrito: distrito === "__todos" ? undefined : distrito,
           competencia: competencia === "__todas" ? undefined : (competencia as Funcao),
           minimo: competencia === "__todas" ? undefined : Number(minimo),
         },
@@ -66,7 +66,7 @@ function TrabalhadoresPublico() {
       }
     >
       <div className="mb-6 grid gap-3 sm:grid-cols-3">
-        <ConcelhoSelect value={concelho} onChange={setConcelho} incluirTodos />
+        <DistritoSelect value={distrito} onChange={setDistrito} incluirTodos />
         <Select value={competencia} onValueChange={setCompetencia}>
           <SelectTrigger>
             <SelectValue placeholder="Competência" />

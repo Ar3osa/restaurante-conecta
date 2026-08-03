@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import type { Database } from "@/integrations/supabase/types";
+import { DISTRITOS } from "@/lib/pt";
 
 function clientePublico() {
   const key = process.env.SUPABASE_PUBLISHABLE_KEY!;
@@ -82,7 +83,7 @@ export const listarTrabalhadoresPublico = createServerFn({ method: "GET" })
   .inputValidator((input: unknown) =>
     z
       .object({
-        concelho: z.string().max(80).optional(),
+        distrito: z.string().max(80).optional(),
         competencia: z.enum(["bartender", "servico_mesa", "backoffice"]).optional(),
         minimo: z.number().int().min(1).max(5).optional(),
       })
@@ -97,7 +98,11 @@ export const listarTrabalhadoresPublico = createServerFn({ method: "GET" })
       .order("procura_ativa", { ascending: false })
       .limit(60);
 
-    if (data.concelho) query = query.contains("concelhos", [data.concelho]);
+    if (data.distrito) {
+      const concelhos = DISTRITOS[data.distrito] ?? [];
+      if (concelhos.length === 0) return [];
+      query = query.overlaps("concelhos", concelhos);
+    }
     if (data.competencia && data.minimo) {
       const coluna =
         data.competencia === "bartender"
