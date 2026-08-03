@@ -189,21 +189,29 @@ function Procurar() {
                         <Badge variant="outline">+{(t.concelhos ?? []).length - 4}</Badge>
                       )}
                     </div>
-                    {((t.dias ?? []).length > 0 || (t.horarios ?? []).length > 0) && (
-                      <p className="flex items-start gap-1.5 text-xs text-muted-foreground">
-                        <CalendarClock className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                        <span>
-                          {[(t.dias ?? []).join(", "), (t.horarios ?? []).join(", ")]
-                            .filter(Boolean)
-                            .join(" · ")}
-                        </span>
-                      </p>
+                    {(t.horarios ?? []).length > 0 && (
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <CalendarClock className="h-3.5 w-3.5 text-muted-foreground" />
+                        {(t.horarios ?? []).map((h: string) => (
+                          <Badge key={h} variant="outline">
+                            {h}
+                          </Badge>
+                        ))}
+                      </div>
                     )}
                   </div>
 
                   {contacto ? (
                     <div className="space-y-1 rounded-md border border-primary/40 bg-primary/5 p-3 text-sm">
                       <p className="font-medium">{contacto.nome}</p>
+                      <p className="text-muted-foreground">
+                        {t.anos_experiencia} ano{t.anos_experiencia === 1 ? "" : "s"} de experiência
+                      </p>
+                      {(t.dias ?? []).length > 0 && (
+                        <p className="text-muted-foreground">
+                          Dias disponíveis: {(t.dias ?? []).join(", ")}
+                        </p>
+                      )}
                       {contacto.telefone && (
                         <p className="flex items-center gap-2">
                           <Phone className="h-3.5 w-3.5" /> {contacto.telefone}

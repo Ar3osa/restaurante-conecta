@@ -126,7 +126,13 @@ export const DIAS = [
   "Domingo",
 ] as const;
 
-export const HORARIOS = ["Manhã", "Almoço", "Tarde", "Jantar", "Noite / Madrugada"] as const;
+export const HORARIOS = ["Part-time", "Full-time"] as const;
+
+/** Ids de perfis de demonstração desbloqueados para pré-visualização sem conta. */
+export const DEMO_DESBLOQUEADOS = [
+  "11111111-1111-4111-8111-000000000001",
+  "11111111-1111-4111-8111-000000000002",
+];
 
 export function formatarData(iso: string) {
   return new Date(iso + "T00:00:00").toLocaleDateString("pt-PT", {
