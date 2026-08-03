@@ -116,20 +116,17 @@ function TrabalhadoresPublico() {
                     <FotoBloqueada nome={t.nome_publico} />
                     <div>
                       <h2 className="font-semibold">{t.nome_publico}</h2>
-                      <p className="text-sm text-muted-foreground">{t.titulo}</p>
+                      <Badge variant="secondary" className="mt-1">
+                        {FUNCAO_LABEL[t.foco as Funcao]}
+                      </Badge>
                     </div>
                   </div>
-                  <div className="flex flex-col items-end gap-1">
-                    <Badge variant="secondary">{FUNCAO_LABEL[t.foco as Funcao]}</Badge>
-                    {t.procura_ativa && (
-                      <Badge className="gap-1">
-                        <Sparkles className="h-3 w-3" /> Procura ativa
-                      </Badge>
-                    )}
-                  </div>
+                  {t.procura_ativa && (
+                    <Badge className="gap-1 shrink-0">
+                      <Sparkles className="h-3 w-3" /> Procura ativa
+                    </Badge>
+                  )}
                 </div>
-
-                {t.bio && <p className="line-clamp-3 text-sm text-muted-foreground">{t.bio}</p>}
 
                 <div className="space-y-1.5">
                   <Linha label="Bartender" value={t.skill_bartender} />
