@@ -121,11 +121,23 @@ function TrabalhadoresPublico() {
                       </Badge>
                     </div>
                   </div>
-                  {t.procura_ativa && (
-                    <Badge className="gap-1 shrink-0">
-                      <Sparkles className="h-3 w-3" /> Procura ativa
-                    </Badge>
-                  )}
+                  <div className="flex shrink-0 flex-col items-end gap-1">
+                    {t.destaque_pago && (
+                      <Badge className="bg-accent text-accent-foreground hover:bg-accent">
+                        Destaque
+                      </Badge>
+                    )}
+                    {t.procura_ativa && (
+                      <Badge className="gap-1">
+                        <Sparkles className="h-3 w-3" /> Procura ativa
+                      </Badge>
+                    )}
+                    {t.reputacao != null && (
+                      <span className="text-xs font-semibold text-muted-foreground">
+                        ★ {Number(t.reputacao).toFixed(1)}
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 <div className="space-y-1.5">

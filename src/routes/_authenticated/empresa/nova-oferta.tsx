@@ -41,7 +41,8 @@ function NovaOferta() {
     dataTurno: "",
     horaInicio: "19:00",
     horaFim: "23:00",
-    remuneracao: "",
+    remuneracaoMin: "",
+    remuneracaoMax: "",
     descricao: "",
   });
 
@@ -50,7 +51,8 @@ function NovaOferta() {
       criar({
         data: {
           ...form,
-          remuneracao: form.remuneracao ? Number(form.remuneracao) : null,
+          remuneracaoMin: form.remuneracaoMin ? Number(form.remuneracaoMin) : null,
+          remuneracaoMax: form.remuneracaoMax ? Number(form.remuneracaoMax) : null,
         },
       }),
     onSuccess: () => {
@@ -61,8 +63,13 @@ function NovaOferta() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const intervaloValido =
+    !form.remuneracaoMin || !form.remuneracaoMax || Number(form.remuneracaoMin) <= Number(form.remuneracaoMax);
   const valido =
-    form.titulo.trim().length >= 3 && form.concelho.length >= 2 && /^\d{4}-\d{2}-\d{2}$/.test(form.dataTurno);
+    form.titulo.trim().length >= 3 &&
+    form.concelho.length >= 2 &&
+    /^\d{4}-\d{2}-\d{2}$/.test(form.dataTurno) &&
+    intervaloValido;
 
   return (
     <AppShell titulo="Publicar turno" descricao="Publicar turnos é gratuito.">
@@ -117,14 +124,27 @@ function NovaOferta() {
             />
           </div>
           <div className="space-y-2">
-            <Label>Remuneração (€ por turno)</Label>
+            <Label>Valor mínimo (€/hora)</Label>
             <Input
               type="number"
               min={0}
-              value={form.remuneracao}
+              value={form.remuneracaoMin}
               placeholder="Opcional"
-              onChange={(e) => setForm({ ...form, remuneracao: e.target.value })}
+              onChange={(e) => setForm({ ...form, remuneracaoMin: e.target.value })}
             />
+          </div>
+          <div className="space-y-2">
+            <Label>Valor máximo (€/hora)</Label>
+            <Input
+              type="number"
+              min={0}
+              value={form.remuneracaoMax}
+              placeholder="Opcional"
+              onChange={(e) => setForm({ ...form, remuneracaoMax: e.target.value })}
+            />
+            {!intervaloValido && (
+              <p className="text-xs text-destructive">O valor mínimo não pode ser maior que o máximo.</p>
+            )}
           </div>
           <div className="space-y-2">
             <Label>Hora de início</Label>

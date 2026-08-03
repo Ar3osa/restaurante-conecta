@@ -134,6 +134,13 @@ export const DEMO_DESBLOQUEADOS = [
   "11111111-1111-4111-8111-000000000002",
 ];
 
+export function formatarRemuneracao(min: number | null, max: number | null) {
+  if (min != null && max != null) return `${min}–${max} € / hora`;
+  if (min != null) return `desde ${min} € / hora`;
+  if (max != null) return `até ${max} € / hora`;
+  return "";
+}
+
 export function formatarData(iso: string) {
   return new Date(iso + "T00:00:00").toLocaleDateString("pt-PT", {
     weekday: "short",

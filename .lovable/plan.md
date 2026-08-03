@@ -16,10 +16,12 @@ Tabelas principais:
 - `worker_areas` — concelhos/distritos onde pretende trabalhar (lista oficial de concelhos de Portugal incluída na migração)
 - `worker_experience` — passagens anteriores (local, função, período)
 - `businesses` — nome, NIF (validado), morada, concelho, tipo (restaurante/bar/hotel), descrição, estado de verificação
-- `job_posts` — necessidade de trabalho: função, concelho, data/horário do turno, duração, remuneração, descrição, estado
+- `job_posts` — necessidade de trabalho: função, concelho, data/horário do turno, duração, intervalo de remuneração (€/hora mín.–máx.), descrição, estado, flag `destacada` (impulso pago, 2 créditos)
 - `job_applications` — candidaturas do trabalhador a um turno
 - `contact_unlocks` — registo de que empresa desbloqueou que trabalhador, custo e data
 - `wallets` / `credit_transactions` — saldo de créditos da empresa e histórico (compras simuladas, gastos)
+- `job_ratings` — avaliação mútua pós-turno (trabalhador avalia a casa, casa avalia o trabalhador), só criada depois de ambas as partes confirmarem `job_applications.confirmado_trabalhador`/`confirmado_empresa`
+- `worker_reputation` (view) — média das avaliações recebidas por cada trabalhador, usada como critério de desempate no ranking
 
 Regras de acesso (RLS): cada utilizador só edita o que é seu; perfis de trabalhador visíveis para empresas **sem contactos** (telefone/email só após desbloqueio); ofertas públicas para leitura; carteiras e desbloqueios só do próprio negócio. Os contactos nunca chegam ao browser sem desbloqueio — são devolvidos por função de servidor que verifica o registo em `contact_unlocks`.
 
@@ -32,17 +34,18 @@ Validação de NIF portuguesa (9 dígitos + dígito de controlo) no cliente e no
 - `/onboarding/trabalhador` — passos: dados pessoais → competências (estrelas) → concelhos → disponibilidade e foco → experiência
 - `/onboarding/empresa` — dados da empresa + NIF validado
 - `/trabalhador/painel` — perfil, estado de visibilidade, candidaturas, ofertas recomendadas, plano "procura ativa"
-- `/ofertas` — lista pública de turnos com filtros (concelho, função, data, remuneração)
+- `/ofertas` — lista pública de turnos com filtros (concelho, função, data, remuneração), ofertas impulsionadas (`destacada`) em primeiro
 - `/ofertas/$id` — detalhe + candidatura
-- `/empresa/painel` — resumo, saldo de créditos, ofertas publicadas, candidaturas recebidas, contactos desbloqueados
-- `/empresa/ofertas/nova` — publicar necessidade de turno
-- `/empresa/procurar` — pesquisa de trabalhadores com filtros (concelho, competência mínima em estrelas, disponibilidade), cartões sem contacto e botão "Desbloquear contacto — 1 crédito"
+- `/empresa/painel` — resumo, saldo de créditos, ofertas publicadas (com "Impulsionar oferta · 2 créditos"), candidaturas recebidas com fluxo de confirmação e avaliação mútua pós-turno
+- `/empresa/ofertas/nova` — publicar necessidade de turno, com intervalo de remuneração (valor mínimo/máximo por hora)
+- `/empresa/procurar` — pesquisa de trabalhadores com filtros (concelho, competência mínima em estrelas, disponibilidade), cartões sem contacto e botão "Desbloquear contacto — 1 crédito", ordenados por destaque pago → procura ativa → reputação
 - `/empresa/creditos` — compra simulada de pacotes de créditos e histórico
 
 ## Monetização (simulada nesta fase)
 
-- Trabalhador: conta e perfil grátis. Plano "Procura Ativa" (destaque nas pesquisas, candidaturas ilimitadas, alertas) ativável sem cobrança real, com etiqueta clara de modo de demonstração.
-- Empresa: 1 crédito = 1€ = 1 desbloqueio de contacto. Pacotes de créditos adicionados instantaneamente ao saldo, com histórico. Desbloques repetidos do mesmo trabalhador não voltam a cobrar.
+- Trabalhador: conta e perfil grátis. Plano "Procura Ativa" (destaque nas pesquisas, candidaturas ilimitadas, alertas) ativável sem cobrança real, com etiqueta clara de modo de demonstração. "Destaque pago" (5€/semana, simulado) sobe-o à frente da procura ativa gratuita no ranking.
+- Empresa: 1 crédito = 1€ = 1 desbloqueio de contacto. Pacotes de créditos adicionados instantaneamente ao saldo, com histórico. Desbloques repetidos do mesmo trabalhador não voltam a cobrar. "Impulsionar oferta" custa 2 créditos e marca o turno como `destacada` em `/ofertas`.
+- Ranking de trabalhadores (em `/empresa/procurar` e `/trabalhadores`): `pontuação = destaque pago (200) + procura ativa (100) + reputação média (0–5)`, calculado no servidor.
 - Toda a lógica de cobrança fica isolada para que a ligação a Stripe/Paddle seja depois uma troca localizada.
 
 ## Design
@@ -57,6 +60,10 @@ Direção visual própria da restauração portuguesa: tons quentes (terracota/c
 - Concelhos e competências semeados por migração com dados literais.
 - SEO por rota: títulos e descrições próprios, JSON-LD `JobPosting` nas ofertas.
 
+## Avaliação mútua pós-turno
+
+Depois de uma candidatura ficar `aceite`, cada lado confirma independentemente que o turno se realizou (`job_applications.confirmado_trabalhador` / `confirmado_empresa`, via RPC `confirmar_turno`). Só depois de ambas as confirmações é que cada parte pode avaliar a outra de 1 a 5 estrelas com comentário opcional (RPC `avaliar_turno`, tabela `job_ratings`). A média das avaliações recebidas por um trabalhador (`worker_reputation`) entra no ranking de pesquisa.
+
 ## Fora de âmbito nesta fase
 
-Pagamentos reais, avaliações mútuas pós-turno, chat interno, contratos/recibos, app móvel nativa.
+Pagamentos reais, chat interno, contratos/recibos, app móvel nativa, upload real de foto de perfil (usa iniciais como placeholder).

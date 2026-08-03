@@ -22,7 +22,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { listarOfertas } from "@/lib/publico.functions";
 import { candidatar } from "@/lib/trabalhador.functions";
-import { FUNCAO_LABEL, FUNCOES, formatarData, type Funcao } from "@/lib/pt";
+import { FUNCAO_LABEL, FUNCOES, formatarData, formatarRemuneracao, type Funcao } from "@/lib/pt";
 import { usePapeis } from "@/hooks/useAuth";
 
 export const Route = createFileRoute("/ofertas/")({
@@ -134,7 +134,12 @@ function Ofertas() {
                       <h2 className="font-semibold leading-tight">{o.titulo}</h2>
                       <p className="text-sm text-muted-foreground">{empresa?.nome}</p>
                     </div>
-                    <Badge variant="secondary">{FUNCAO_LABEL[o.funcao as Funcao]}</Badge>
+                    <div className="flex flex-col items-end gap-1">
+                      <Badge variant="secondary">{FUNCAO_LABEL[o.funcao as Funcao]}</Badge>
+                      {o.destacada && (
+                        <Badge className="bg-accent text-accent-foreground hover:bg-accent">Destacada</Badge>
+                      )}
+                    </div>
                   </div>
 
                   <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
@@ -147,9 +152,9 @@ function Ofertas() {
                     <span className="inline-flex items-center gap-1">
                       <Clock className="h-3.5 w-3.5" /> {o.hora_inicio}–{o.hora_fim}
                     </span>
-                    {o.remuneracao != null && (
+                    {(o.remuneracao_min != null || o.remuneracao_max != null) && (
                       <span className="inline-flex items-center gap-1 font-medium text-foreground">
-                        <Euro className="h-3.5 w-3.5" /> {o.remuneracao} / turno
+                        <Euro className="h-3.5 w-3.5" /> {formatarRemuneracao(o.remuneracao_min, o.remuneracao_max)}
                       </span>
                     )}
                   </div>

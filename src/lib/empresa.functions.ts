@@ -109,7 +109,27 @@ export type ResultadoTrabalhador = {
   dias: string[];
   horarios: string[];
   procura_ativa: boolean;
+  destaque_pago: boolean;
 };
+
+/** score = destaque pago (200) + procura ativa (100) + reputação (0–5) */
+function pontuacaoRanking(w: { procura_ativa: boolean; destaque_pago: boolean }, reputacao: number | null) {
+  return (w.destaque_pago ? 200 : 0) + (w.procura_ativa ? 100 : 0) + (reputacao ?? 0);
+}
+
+async function reputacaoPorTrabalhador(
+  supabase: { from: (t: string) => any },
+  workerIds: string[],
+): Promise<Map<string, number>> {
+  if (workerIds.length === 0) return new Map();
+  const { data } = await supabase
+    .from("worker_reputation")
+    .select("worker_id, media")
+    .in("worker_id", workerIds);
+  return new Map(
+    ((data ?? []) as { worker_id: string; media: number }[]).map((r) => [r.worker_id, r.media]),
+  );
+}
 
 export const procurarTrabalhadores = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -127,10 +147,9 @@ export const procurarTrabalhadores = createServerFn({ method: "GET" })
     let query = supabase
       .from("worker_profiles")
       .select(
-        "user_id, nome_publico, titulo, bio, anos_experiencia, foco, skill_bartender, skill_servico_mesa, skill_backoffice, concelhos, dias, horarios, procura_ativa",
+        "user_id, nome_publico, titulo, bio, anos_experiencia, foco, skill_bartender, skill_servico_mesa, skill_backoffice, concelhos, dias, horarios, procura_ativa, destaque_pago",
       )
       .eq("visivel", true)
-      .order("procura_ativa", { ascending: false })
       .limit(60);
 
     if (data.distrito) {
@@ -161,12 +180,19 @@ export const procurarTrabalhadores = createServerFn({ method: "GET" })
       desbloqueados = (unlocks ?? []).map((u: { worker_id: string }) => u.worker_id);
     }
 
-    return (rows ?? [])
-      .filter((r: { user_id: string }) => r.user_id !== userId)
+    const lista = (rows ?? []).filter((r: { user_id: string }) => r.user_id !== userId) as ResultadoTrabalhador[];
+    const reputacoes = await reputacaoPorTrabalhador(
+      supabase,
+      lista.map((r) => r.user_id),
+    );
+
+    return lista
       .map((r) => ({
-        ...(r as unknown as ResultadoTrabalhador),
-        desbloqueado: desbloqueados.includes((r as { user_id: string }).user_id),
-      }));
+        ...r,
+        desbloqueado: desbloqueados.includes(r.user_id),
+        reputacao: reputacoes.get(r.user_id) ?? null,
+      }))
+      .sort((a, b) => pontuacaoRanking(b, b.reputacao) - pontuacaoRanking(a, a.reputacao));
   });
 
 export const desbloquearContacto = createServerFn({ method: "POST" })
@@ -249,9 +275,14 @@ export const criarOferta = createServerFn({ method: "POST" })
         dataTurno: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
         horaInicio: z.string().max(10),
         horaFim: z.string().max(10),
-        remuneracao: z.number().min(0).max(9999).nullable(),
+        remuneracaoMin: z.number().min(0).max(999).nullable(),
+        remuneracaoMax: z.number().min(0).max(999).nullable(),
         descricao: z.string().trim().max(800),
       })
+      .refine(
+        (v) => v.remuneracaoMin == null || v.remuneracaoMax == null || v.remuneracaoMin <= v.remuneracaoMax,
+        { message: "O valor mínimo não pode ser maior que o máximo." },
+      )
       .parse(input),
   )
   .handler(async ({ data, context }) => {
@@ -268,7 +299,8 @@ export const criarOferta = createServerFn({ method: "POST" })
         data_turno: data.dataTurno,
         hora_inicio: data.horaInicio,
         hora_fim: data.horaFim,
-        remuneracao: data.remuneracao,
+        remuneracao_min: data.remuneracaoMin,
+        remuneracao_max: data.remuneracaoMax,
         descricao: data.descricao,
       })
       .select("id")
@@ -320,18 +352,31 @@ export const candidaturasRecebidas = createServerFn({ method: "GET" })
 
     const { data, error } = await supabase
       .from("job_applications")
-      .select("id, estado, mensagem, created_at, worker_id, job_posts(id, titulo, data_turno)")
+      .select(
+        "id, estado, mensagem, created_at, worker_id, confirmado_trabalhador, confirmado_empresa, job_posts(id, titulo, data_turno)",
+      )
       .in("job_id", ids)
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
 
     const workerIds = [...new Set((data ?? []).map((a: { worker_id: string }) => a.worker_id))];
-    const { data: perfis } = await supabase
-      .from("worker_profiles")
-      .select("user_id, nome_publico, titulo, foco")
-      .in("user_id", workerIds);
+    const applicationIds = (data ?? []).map((a: { id: string }) => a.id);
+    const [{ data: perfis }, { data: avaliacoes }] = await Promise.all([
+      supabase.from("worker_profiles").select("user_id, nome_publico, titulo, foco").in("user_id", workerIds),
+      supabase
+        .from("job_ratings")
+        .select("job_application_id, rated_stars")
+        .eq("rater_role", "empresa")
+        .in("job_application_id", applicationIds),
+    ]);
 
     const mapa = new Map((perfis ?? []).map((p: { user_id: string }) => [p.user_id, p]));
+    const mapaAvaliacoes = new Map(
+      (avaliacoes ?? []).map((a: { job_application_id: string; rated_stars: number }) => [
+        a.job_application_id,
+        a.rated_stars,
+      ]),
+    );
     return (data ?? []).map((a) => ({
       ...(a as unknown as {
         id: string;
@@ -339,6 +384,8 @@ export const candidaturasRecebidas = createServerFn({ method: "GET" })
         mensagem: string;
         created_at: string;
         worker_id: string;
+        confirmado_trabalhador: boolean;
+        confirmado_empresa: boolean;
         job_posts: { id: string; titulo: string; data_turno: string } | null;
       }),
       trabalhador:
@@ -347,6 +394,7 @@ export const candidaturasRecebidas = createServerFn({ method: "GET" })
           titulo: string;
           foco: string;
         }) ?? null,
+      avaliacaoEnviada: mapaAvaliacoes.get((a as { id: string }).id) ?? null,
     }));
   });
 
@@ -362,6 +410,55 @@ export const atualizarCandidatura = createServerFn({ method: "POST" })
       .from("job_applications")
       .update({ estado: data.estado })
       .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const impulsionarOferta = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ jobId: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const empresa = await empresaDoUtilizador(supabase, userId);
+    if (!empresa) throw new Error("Ainda não registaste a tua empresa.");
+    const { data: saldo, error } = await supabase.rpc("impulsionar_oferta", {
+      _business_id: empresa.id,
+      _job_id: data.jobId,
+    });
+    if (error) throw new Error(error.message);
+    return { saldo: saldo as number };
+  });
+
+export const confirmarTurnoEmpresa = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ applicationId: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase.rpc("confirmar_turno", {
+      _application_id: data.applicationId,
+      _lado: "empresa",
+    });
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const avaliarTrabalhador = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        applicationId: z.string().uuid(),
+        estrelas: z.number().int().min(1).max(5),
+        comentario: z.string().trim().max(300),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase.rpc("avaliar_turno", {
+      _application_id: data.applicationId,
+      _lado: "empresa",
+      _estrelas: data.estrelas,
+      _comentario: data.comentario,
+    });
     if (error) throw new Error(error.message);
     return { ok: true };
   });
