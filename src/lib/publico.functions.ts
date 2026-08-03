@@ -50,33 +50,7 @@ export const listarOfertas = createServerFn({ method: "GET" })
 
     const { data: rows, error } = await query;
     if (error) throw new Error(error.message);
-    const lista = rows ?? [];
-
-    // Demonstração: dois perfis ficam desbloqueados para se poder ver a vista completa.
-    const ids = lista.map((r) => r.user_id).filter((id) => DEMO_DESBLOQUEADOS.includes(id));
-    if (ids.length === 0) {
-      return lista.map((r) => ({ ...r, desbloqueado: false, contacto: null, experiencias: [] }));
-    }
-
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const [{ data: perfis }, { data: exps }] = await Promise.all([
-      supabaseAdmin.from("profiles").select("id, nome, telefone, email").in("id", ids),
-      supabaseAdmin
-        .from("worker_experience")
-        .select("id, user_id, local, funcao, periodo, descricao")
-        .in("user_id", ids),
-    ]);
-
-    return lista.map((r) => {
-      const desbloqueado = DEMO_DESBLOQUEADOS.includes(r.user_id);
-      const p = (perfis ?? []).find((x) => x.id === r.user_id) ?? null;
-      return {
-        ...r,
-        desbloqueado,
-        contacto: desbloqueado && p ? { nome: p.nome, telefone: p.telefone, email: p.email } : null,
-        experiencias: desbloqueado ? (exps ?? []).filter((e) => e.user_id === r.user_id) : [],
-      };
-    });
+    return rows ?? [];
   });
 
 export const obterOferta = createServerFn({ method: "GET" })
