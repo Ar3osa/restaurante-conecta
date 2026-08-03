@@ -5,7 +5,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { CalendarClock, Lock, Mail, MapPin, Phone, Sparkles } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
-import { ConcelhoSelect } from "@/components/ConcelhoSelect";
+import { DistritoSelect } from "@/components/DistritoSelect";
 import { StarRating } from "@/components/StarRating";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -53,7 +53,7 @@ function Procurar() {
   const empresaFn = useServerFn(obterMinhaEmpresa);
   const queryClient = useQueryClient();
 
-  const [concelho, setConcelho] = useState("__todos");
+  const [distrito, setDistrito] = useState("__todos");
   const [competencia, setCompetencia] = useState("__todas");
   const [minimo, setMinimo] = useState("3");
   const [alvo, setAlvo] = useState<{ user_id: string; nome_publico: string } | null>(null);
@@ -65,11 +65,11 @@ function Procurar() {
   });
 
   const { data, isLoading } = useQuery({
-    queryKey: ["procurar", concelho, competencia, minimo],
+    queryKey: ["procurar", distrito, competencia, minimo],
     queryFn: () =>
       procurar({
         data: {
-          concelho: concelho === "__todos" ? undefined : concelho,
+          distrito: distrito === "__todos" ? undefined : distrito,
           competencia: competencia === "__todas" ? undefined : (competencia as Funcao),
           minimo: competencia === "__todas" ? undefined : Number(minimo),
         },
@@ -104,7 +104,7 @@ function Procurar() {
       acoes={<Badge variant="secondary">Saldo: {empresa.data?.saldo ?? 0} créditos</Badge>}
     >
       <div className="mb-6 grid gap-3 sm:grid-cols-3">
-        <ConcelhoSelect value={concelho} onChange={setConcelho} incluirTodos />
+        <DistritoSelect value={distrito} onChange={setDistrito} incluirTodos />
         <Select value={competencia} onValueChange={setCompetencia}>
           <SelectTrigger>
             <SelectValue placeholder="Competência" />
