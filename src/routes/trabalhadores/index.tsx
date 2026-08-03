@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
-import { CalendarClock, Lock, MapPin, Sparkles } from "lucide-react";
+import { Briefcase, CalendarClock, Lock, Mail, MapPin, Phone, Sparkles } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { DistritoSelect } from "@/components/DistritoSelect";
 import { StarRating } from "@/components/StarRating";
@@ -113,7 +113,7 @@ function TrabalhadoresPublico() {
               <CardContent className="space-y-4 pt-6">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <FotoBloqueada nome={t.nome_publico} />
+                    <FotoBloqueada nome={t.nome_publico} desbloqueada={t.desbloqueado} />
                     <div>
                       <h2 className="font-semibold">{t.nome_publico}</h2>
                       <Badge variant="secondary" className="mt-1">
@@ -146,23 +146,67 @@ function TrabalhadoresPublico() {
                       <Badge variant="outline">+{(t.concelhos ?? []).length - 4}</Badge>
                     )}
                   </div>
-                  {((t.dias ?? []).length > 0 || (t.horarios ?? []).length > 0) && (
-                    <p className="flex items-start gap-1.5 text-xs text-muted-foreground">
-                      <CalendarClock className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                      <span>
-                        {[(t.dias ?? []).join(", "), (t.horarios ?? []).join(", ")]
-                          .filter(Boolean)
-                          .join(" · ")}
-                      </span>
-                    </p>
+                  {(t.horarios ?? []).length > 0 && (
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <CalendarClock className="h-3.5 w-3.5 text-muted-foreground" />
+                      {(t.horarios ?? []).map((h: string) => (
+                        <Badge key={h} variant="outline">
+                          {h}
+                        </Badge>
+                      ))}
+                    </div>
                   )}
                 </div>
 
-                <Button variant="outline" className="w-full" asChild>
-                  <Link to="/auth" search={{ modo: "registo", papel: "empregador" }}>
-                    <Lock className="mr-2 h-4 w-4" /> Contacto bloqueado · entra como empresa
-                  </Link>
-                </Button>
+                {t.desbloqueado ? (
+                  <div className="space-y-3 rounded-md border border-primary/40 bg-primary/5 p-3 text-sm">
+                    <div>
+                      <p className="font-medium">{t.contacto?.nome ?? t.nome_publico}</p>
+                      {t.titulo && <p className="text-muted-foreground">{t.titulo}</p>}
+                      <p className="text-muted-foreground">
+                        {t.anos_experiencia} ano{t.anos_experiencia === 1 ? "" : "s"} de experiência
+                      </p>
+                    </div>
+                    {t.bio && <p className="text-muted-foreground">{t.bio}</p>}
+                    {(t.dias ?? []).length > 0 && (
+                      <p className="text-muted-foreground">
+                        Dias disponíveis: {(t.dias ?? []).join(", ")}
+                      </p>
+                    )}
+                    {(t.experiencias ?? []).length > 0 && (
+                      <ul className="space-y-1">
+                        {(t.experiencias ?? []).map((e) => (
+                          <li key={e.id} className="flex items-start gap-2">
+                            <Briefcase className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                            <span>
+                              <span className="font-medium">{e.funcao}</span> · {e.local}
+                              {e.periodo ? ` · ${e.periodo}` : ""}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    {t.contacto?.telefone && (
+                      <p className="flex items-center gap-2">
+                        <Phone className="h-3.5 w-3.5" /> {t.contacto.telefone}
+                      </p>
+                    )}
+                    {t.contacto?.email && (
+                      <p className="flex items-center gap-2">
+                        <Mail className="h-3.5 w-3.5" /> {t.contacto.email}
+                      </p>
+                    )}
+                    <p className="text-xs text-muted-foreground">
+                      Perfil desbloqueado em modo de demonstração.
+                    </p>
+                  </div>
+                ) : (
+                  <Button variant="outline" className="w-full" asChild>
+                    <Link to="/auth" search={{ modo: "registo", papel: "empregador" }}>
+                      <Lock className="mr-2 h-4 w-4" /> Contacto bloqueado · entra como empresa
+                    </Link>
+                  </Button>
+                )}
               </CardContent>
             </Card>
           ))}
@@ -181,7 +225,7 @@ function Linha({ label, value }: { label: string; value: number }) {
   );
 }
 
-function FotoBloqueada({ nome }: { nome: string }) {
+function FotoBloqueada({ nome, desbloqueada }: { nome: string; desbloqueada?: boolean }) {
   const iniciais = nome
     .split(" ")
     .map((p) => p[0])
@@ -192,15 +236,22 @@ function FotoBloqueada({ nome }: { nome: string }) {
   return (
     <div
       className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full bg-muted"
-      aria-label="Foto bloqueada"
-      title="Foto visível após desbloquear o contacto"
+      aria-label={desbloqueada ? nome : "Foto bloqueada"}
+      title={desbloqueada ? nome : "Foto visível após desbloquear o contacto"}
     >
-      <div className="flex h-full w-full select-none items-center justify-center text-sm font-semibold text-muted-foreground blur-[6px]">
+      <div
+        className={
+          "flex h-full w-full items-center justify-center text-sm font-semibold text-muted-foreground" +
+          (desbloqueada ? "" : " select-none blur-[6px]")
+        }
+      >
         {iniciais}
       </div>
-      <div className="absolute inset-0 flex items-center justify-center bg-foreground/10">
-        <Lock className="h-4 w-4 text-foreground/70" />
-      </div>
+      {!desbloqueada && (
+        <div className="absolute inset-0 flex items-center justify-center bg-foreground/10">
+          <Lock className="h-4 w-4 text-foreground/70" />
+        </div>
+      )}
     </div>
   );
 }
