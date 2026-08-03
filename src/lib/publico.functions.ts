@@ -98,10 +98,11 @@ export const listarTrabalhadoresPublico = createServerFn({ method: "GET" })
       .order("procura_ativa", { ascending: false })
       .limit(60);
 
+    let semResultados = false;
     if (data.distrito) {
       const concelhos = DISTRITOS[data.distrito] ?? [];
-      if (concelhos.length === 0) return [];
-      query = query.overlaps("concelhos", concelhos);
+      if (concelhos.length === 0) semResultados = true;
+      else query = query.overlaps("concelhos", concelhos);
     }
     if (data.competencia && data.minimo) {
       const coluna =
@@ -113,7 +114,47 @@ export const listarTrabalhadoresPublico = createServerFn({ method: "GET" })
       query = query.gte(coluna, data.minimo);
     }
 
-    const { data: rows, error } = await query;
+    const { data: rows, error } = semResultados ? { data: [], error: null } : await query;
     if (error) throw new Error(error.message);
-    return rows ?? [];
+    const lista = rows ?? [];
+
+    // Demonstração: dois perfis ficam desbloqueados para se poder ver a vista completa.
+    const ids = lista
+      .map((r) => r.user_id)
+      .filter((id) => DEMO_DESBLOQUEADOS.includes(id as string));
+
+    let perfis: { id: string; nome: string; telefone: string | null; email: string | null }[] = [];
+    let exps: {
+      id: string;
+      user_id: string;
+      local: string;
+      funcao: string;
+      periodo: string;
+      descricao: string;
+    }[] = [];
+
+    if (ids.length > 0) {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const [rp, re] = await Promise.all([
+        supabaseAdmin.from("profiles").select("id, nome, telefone, email").in("id", ids),
+        supabaseAdmin
+          .from("worker_experience")
+          .select("id, user_id, local, funcao, periodo, descricao")
+          .in("user_id", ids),
+      ]);
+      perfis = rp.data ?? [];
+      exps = re.data ?? [];
+    }
+
+    return lista.map((r) => {
+      const desbloqueado = DEMO_DESBLOQUEADOS.includes(r.user_id as string);
+      const p = perfis.find((x) => x.id === r.user_id) ?? null;
+      return {
+        ...r,
+        desbloqueado,
+        contacto:
+          desbloqueado && p ? { nome: p.nome, telefone: p.telefone, email: p.email } : null,
+        experiencias: desbloqueado ? exps.filter((e) => e.user_id === r.user_id) : [],
+      };
+    });
   });
