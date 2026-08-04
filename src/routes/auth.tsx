@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { UtensilsCrossed } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -102,17 +101,16 @@ function AuthPage() {
 
   async function entrarComGoogle() {
     setACarregar(true);
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
+    // Supabase redirects the whole page to Google and back — on success the
+    // browser navigates away, so there is no local success branch here.
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: `${window.location.origin}/auth` },
     });
-    if (result.error) {
+    if (error) {
       setACarregar(false);
       toast.error("Não foi possível entrar com o Google.");
-      return;
     }
-    if (result.redirected) return;
-    await encaminhar();
-    setACarregar(false);
   }
 
   return (
@@ -134,7 +132,10 @@ function AuthPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-5">
-          <Tabs value={registo ? "registo" : "entrar"} onValueChange={(v) => setRegisto(v === "registo")}>
+          <Tabs
+            value={registo ? "registo" : "entrar"}
+            onValueChange={(v) => setRegisto(v === "registo")}
+          >
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="entrar">Entrar</TabsTrigger>
               <TabsTrigger value="registo">Criar conta</TabsTrigger>
@@ -145,12 +146,10 @@ function AuthPage() {
             <div className="space-y-2">
               <Label>Vou usar a Mesa como</Label>
               <div className="grid grid-cols-2 gap-2">
-                {(
-                  [
-                    { v: "trabalhador" as const, t: "Trabalhador" },
-                    { v: "empregador" as const, t: "Restaurante / bar" },
-                  ]
-                ).map((op) => (
+                {[
+                  { v: "trabalhador" as const, t: "Trabalhador" },
+                  { v: "empregador" as const, t: "Restaurante / bar" },
+                ].map((op) => (
                   <button
                     key={op.v}
                     type="button"
