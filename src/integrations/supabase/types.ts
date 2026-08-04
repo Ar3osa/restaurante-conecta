@@ -125,6 +125,8 @@ export type Database = {
       }
       job_applications: {
         Row: {
+          confirmado_empresa: boolean
+          confirmado_trabalhador: boolean
           created_at: string
           estado: Database["public"]["Enums"]["application_status"]
           id: string
@@ -133,6 +135,8 @@ export type Database = {
           worker_id: string
         }
         Insert: {
+          confirmado_empresa?: boolean
+          confirmado_trabalhador?: boolean
           created_at?: string
           estado?: Database["public"]["Enums"]["application_status"]
           id?: string
@@ -141,6 +145,8 @@ export type Database = {
           worker_id: string
         }
         Update: {
+          confirmado_empresa?: boolean
+          confirmado_trabalhador?: boolean
           created_at?: string
           estado?: Database["public"]["Enums"]["application_status"]
           id?: string
@@ -165,12 +171,14 @@ export type Database = {
           created_at: string
           data_turno: string
           descricao: string
+          destacada: boolean
           estado: Database["public"]["Enums"]["job_status"]
           funcao: Database["public"]["Enums"]["job_role"]
           hora_fim: string
           hora_inicio: string
           id: string
-          remuneracao: number | null
+          remuneracao_max: number | null
+          remuneracao_min: number | null
           titulo: string
           updated_at: string
         }
@@ -180,12 +188,14 @@ export type Database = {
           created_at?: string
           data_turno: string
           descricao?: string
+          destacada?: boolean
           estado?: Database["public"]["Enums"]["job_status"]
           funcao: Database["public"]["Enums"]["job_role"]
           hora_fim?: string
           hora_inicio?: string
           id?: string
-          remuneracao?: number | null
+          remuneracao_max?: number | null
+          remuneracao_min?: number | null
           titulo: string
           updated_at?: string
         }
@@ -195,12 +205,14 @@ export type Database = {
           created_at?: string
           data_turno?: string
           descricao?: string
+          destacada?: boolean
           estado?: Database["public"]["Enums"]["job_status"]
           funcao?: Database["public"]["Enums"]["job_role"]
           hora_fim?: string
           hora_inicio?: string
           id?: string
-          remuneracao?: number | null
+          remuneracao_max?: number | null
+          remuneracao_min?: number | null
           titulo?: string
           updated_at?: string
         }
@@ -210,6 +222,41 @@ export type Database = {
             columns: ["business_id"]
             isOneToOne: false
             referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      job_ratings: {
+        Row: {
+          comentario: string
+          created_at: string
+          id: string
+          job_application_id: string
+          rated_stars: number
+          rater_role: Database["public"]["Enums"]["rater_role"]
+        }
+        Insert: {
+          comentario?: string
+          created_at?: string
+          id?: string
+          job_application_id: string
+          rated_stars: number
+          rater_role: Database["public"]["Enums"]["rater_role"]
+        }
+        Update: {
+          comentario?: string
+          created_at?: string
+          id?: string
+          job_application_id?: string
+          rated_stars?: number
+          rater_role?: Database["public"]["Enums"]["rater_role"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_ratings_job_application_id_fkey"
+            columns: ["job_application_id"]
+            isOneToOne: false
+            referencedRelation: "job_applications"
             referencedColumns: ["id"]
           },
         ]
@@ -331,6 +378,7 @@ export type Database = {
           concelhos: string[]
           created_at: string
           demo: boolean
+          destaque_pago: boolean
           dias: string[]
           foco: Database["public"]["Enums"]["job_role"]
           horarios: string[]
@@ -350,6 +398,7 @@ export type Database = {
           concelhos?: string[]
           created_at?: string
           demo?: boolean
+          destaque_pago?: boolean
           dias?: string[]
           foco?: Database["public"]["Enums"]["job_role"]
           horarios?: string[]
@@ -369,6 +418,7 @@ export type Database = {
           concelhos?: string[]
           created_at?: string
           demo?: boolean
+          destaque_pago?: boolean
           dias?: string[]
           foco?: Database["public"]["Enums"]["job_role"]
           horarios?: string[]
@@ -386,12 +436,35 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      worker_reputation: {
+        Row: {
+          media: number | null
+          total: number | null
+          worker_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
+      avaliar_turno: {
+        Args: {
+          _application_id: string
+          _comentario: string
+          _estrelas: number
+          _lado: Database["public"]["Enums"]["rater_role"]
+        }
+        Returns: undefined
+      }
       comprar_creditos: {
         Args: { _business_id: string; _creditos: number }
         Returns: number
+      }
+      confirmar_turno: {
+        Args: {
+          _application_id: string
+          _lado: Database["public"]["Enums"]["rater_role"]
+        }
+        Returns: undefined
       }
       contactos_desbloqueados: {
         Args: { _business_id: string }
@@ -419,6 +492,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      impulsionar_oferta: {
+        Args: { _business_id: string; _job_id: string }
+        Returns: number
+      }
     }
     Enums: {
       app_role: "trabalhador" | "empregador" | "admin"
@@ -432,6 +509,7 @@ export type Database = {
         | "outro"
       job_role: "bartender" | "servico_mesa" | "backoffice"
       job_status: "aberta" | "fechada"
+      rater_role: "trabalhador" | "empresa"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -571,6 +649,7 @@ export const Constants = {
       ],
       job_role: ["bartender", "servico_mesa", "backoffice"],
       job_status: ["aberta", "fechada"],
+      rater_role: ["trabalhador", "empresa"],
     },
   },
 } as const

@@ -86,6 +86,19 @@ export const definirProcuraAtiva = createServerFn({ method: "POST" })
     return { ativa: data.ativa };
   });
 
+/** Destaque pago (simulado): aparece à frente da procura ativa gratuita no ranking. */
+export const definirDestaquePago = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ ativo: z.boolean() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase
+      .from("worker_profiles")
+      .update({ destaque_pago: data.ativo })
+      .eq("user_id", context.userId);
+    if (error) throw new Error(error.message);
+    return { ativo: data.ativo };
+  });
+
 export const adicionarExperiencia = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
@@ -122,13 +135,78 @@ export const removerExperiencia = createServerFn({ method: "POST" })
 export const minhasCandidaturas = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { data, error } = await context.supabase
+    const { supabase, userId } = context;
+    const { data, error } = await supabase
       .from("job_applications")
-      .select("id, estado, mensagem, created_at, job_posts(id, titulo, concelho, data_turno, funcao)")
-      .eq("worker_id", context.userId)
+      .select(
+        "id, estado, mensagem, created_at, confirmado_trabalhador, confirmado_empresa, job_posts(id, titulo, concelho, data_turno, funcao)",
+      )
+      .eq("worker_id", userId)
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
-    return data ?? [];
+
+    const applicationIds = (data ?? []).map((a: { id: string }) => a.id);
+    const { data: avaliacoes } =
+      applicationIds.length === 0
+        ? { data: [] }
+        : await supabase
+            .from("job_ratings")
+            .select("job_application_id, rated_stars")
+            .eq("rater_role", "trabalhador")
+            .in("job_application_id", applicationIds);
+    const mapaAvaliacoes = new Map(
+      (avaliacoes ?? []).map((a: { job_application_id: string; rated_stars: number }) => [
+        a.job_application_id,
+        a.rated_stars,
+      ]),
+    );
+
+    return (data ?? []).map((a) => ({
+      ...(a as unknown as {
+        id: string;
+        estado: string;
+        mensagem: string;
+        created_at: string;
+        confirmado_trabalhador: boolean;
+        confirmado_empresa: boolean;
+        job_posts: { id: string; titulo: string; concelho: string; data_turno: string; funcao: string } | null;
+      }),
+      avaliacaoEnviada: mapaAvaliacoes.get((a as { id: string }).id) ?? null,
+    }));
+  });
+
+export const confirmarTurnoTrabalhador = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ applicationId: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase.rpc("confirmar_turno", {
+      _application_id: data.applicationId,
+      _lado: "trabalhador",
+    });
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const avaliarEmpresa = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        applicationId: z.string().uuid(),
+        estrelas: z.number().int().min(1).max(5),
+        comentario: z.string().trim().max(300),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase.rpc("avaliar_turno", {
+      _application_id: data.applicationId,
+      _lado: "trabalhador",
+      _estrelas: data.estrelas,
+      _comentario: data.comentario,
+    });
+    if (error) throw new Error(error.message);
+    return { ok: true };
   });
 
 export const candidatar = createServerFn({ method: "POST" })

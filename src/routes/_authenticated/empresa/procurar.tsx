@@ -161,10 +161,20 @@ function Procurar() {
                     </div>
                     <div className="flex flex-col items-end gap-1">
                       <Badge variant="secondary">{FUNCAO_LABEL[t.foco as Funcao]}</Badge>
+                      {t.destaque_pago && (
+                        <Badge className="bg-accent text-accent-foreground hover:bg-accent">
+                          Destaque
+                        </Badge>
+                      )}
                       {t.procura_ativa && (
                         <Badge className="gap-1">
                           <Sparkles className="h-3 w-3" /> Procura ativa
                         </Badge>
+                      )}
+                      {t.reputacao != null && (
+                        <span className="text-xs font-semibold text-muted-foreground">
+                          ★ {Number(t.reputacao).toFixed(1)}
+                        </span>
                       )}
                     </div>
                   </div>

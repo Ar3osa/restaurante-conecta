@@ -4,14 +4,18 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { CalendarDays, Plus, Search, Wallet } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
+import { AvaliacaoTurno } from "@/components/AvaliacaoTurno";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { FUNCAO_LABEL, formatarData, type Funcao } from "@/lib/pt";
 import {
   atualizarCandidatura,
+  avaliarTrabalhador,
   candidaturasRecebidas,
+  confirmarTurnoEmpresa,
   fecharOferta,
+  impulsionarOferta,
   minhasOfertas,
   obterMinhaEmpresa,
 } from "@/lib/empresa.functions";
@@ -37,6 +41,9 @@ function PainelEmpresa() {
   const fechar = useServerFn(fecharOferta);
   const candidaturasFn = useServerFn(candidaturasRecebidas);
   const atualizar = useServerFn(atualizarCandidatura);
+  const impulsionar = useServerFn(impulsionarOferta);
+  const confirmarTurno = useServerFn(confirmarTurnoEmpresa);
+  const avaliar = useServerFn(avaliarTrabalhador);
   const queryClient = useQueryClient();
 
   const empresa = useQuery({ queryKey: ["empresa"], queryFn: () => obter() });
@@ -60,6 +67,39 @@ function PainelEmpresa() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["candidaturas-recebidas"] });
       toast.success("Candidatura atualizada.");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const impulso = useMutation({
+    mutationFn: (jobId: string) => impulsionar({ data: { jobId } }),
+    onSuccess: () => {
+      toast.success("Oferta impulsionada. 2 créditos utilizados.");
+      queryClient.invalidateQueries();
+    },
+    onError: (e: Error) =>
+      toast.error(
+        e.message.toLowerCase().includes("saldo")
+          ? "Sem créditos suficientes. Compra créditos primeiro."
+          : e.message,
+      ),
+  });
+
+  const confirmar = useMutation({
+    mutationFn: (applicationId: string) => confirmarTurno({ data: { applicationId } }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["candidaturas-recebidas"] });
+      toast.success("Turno confirmado.");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const enviarAvaliacao = useMutation({
+    mutationFn: (v: { applicationId: string; estrelas: number; comentario: string }) =>
+      avaliar({ data: v }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["candidaturas-recebidas"] });
+      toast.success("Avaliação enviada.");
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -133,6 +173,7 @@ function PainelEmpresa() {
                 concelho: string;
                 data_turno: string;
                 estado: string;
+                destacada: boolean;
                 job_applications?: { id: string }[];
               };
               return (
@@ -147,6 +188,11 @@ function PainelEmpresa() {
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
+                      {o.destacada && (
+                        <Badge className="bg-accent text-accent-foreground hover:bg-accent">
+                          Destacada
+                        </Badge>
+                      )}
                       <Badge variant={o.estado === "aberta" ? "default" : "secondary"}>
                         {o.estado === "aberta" ? "Aberta" : "Fechada"}
                       </Badge>
@@ -156,16 +202,24 @@ function PainelEmpresa() {
                       </Badge>
                     </div>
                   </div>
-                  {o.estado === "aberta" && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="mt-2"
-                      onClick={() => encerrar.mutate(o.id)}
-                    >
-                      Fechar turno
-                    </Button>
-                  )}
+                  <div className="mt-2 flex gap-4">
+                    {o.estado === "aberta" && (
+                      <Button variant="ghost" size="sm" onClick={() => encerrar.mutate(o.id)}>
+                        Fechar turno
+                      </Button>
+                    )}
+                    {o.estado === "aberta" && !o.destacada && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-primary hover:text-primary"
+                        onClick={() => impulso.mutate(o.id)}
+                        disabled={impulso.isPending}
+                      >
+                        Impulsionar oferta · 2 créditos
+                      </Button>
+                    )}
+                  </div>
                 </div>
               );
             })}
@@ -187,6 +241,9 @@ function PainelEmpresa() {
                 id: string;
                 estado: string;
                 mensagem: string;
+                confirmado_trabalhador: boolean;
+                confirmado_empresa: boolean;
+                avaliacaoEnviada: number | null;
                 job_posts?: { titulo?: string; data_turno?: string } | null;
                 trabalhador?: { nome_publico?: string; titulo?: string } | null;
               };
@@ -234,6 +291,22 @@ function PainelEmpresa() {
                       >
                         Recusar
                       </Button>
+                    </div>
+                  )}
+                  {c.estado === "aceite" && (
+                    <div className="mt-3 border-t border-border pt-3">
+                      <AvaliacaoTurno
+                        avaliadoLabel="este trabalhador"
+                        confirmadoProprio={c.confirmado_empresa}
+                        confirmadoOutro={c.confirmado_trabalhador}
+                        avaliacaoEnviada={c.avaliacaoEnviada}
+                        onConfirmar={() => confirmar.mutate(c.id)}
+                        confirmando={confirmar.isPending}
+                        onAvaliar={(estrelas, comentario) =>
+                          enviarAvaliacao.mutate({ applicationId: c.id, estrelas, comentario })
+                        }
+                        avaliando={enviarAvaliacao.isPending}
+                      />
                     </div>
                   )}
                 </div>
