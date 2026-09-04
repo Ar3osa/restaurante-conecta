@@ -8,6 +8,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
 type Papel = "trabalhador" | "empregador";
@@ -48,6 +56,9 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [nome, setNome] = useState("");
   const [aCarregar, setACarregar] = useState(false);
+  const [recuperacaoAberta, setRecuperacaoAberta] = useState(false);
+  const [emailRecuperacao, setEmailRecuperacao] = useState("");
+  const [aEnviarRecuperacao, setAEnviarRecuperacao] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -96,6 +107,25 @@ function AuthPage() {
       );
     } finally {
       setACarregar(false);
+    }
+  }
+
+  async function pedirRecuperacao(e: React.FormEvent) {
+    e.preventDefault();
+    setAEnviarRecuperacao(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(emailRecuperacao, {
+        redirectTo: `${window.location.origin}/nova-palavra-passe`,
+      });
+      if (error) throw error;
+      // Não revelamos se o email existe ou não — a mensagem é a mesma nos dois casos.
+      toast.success("Se existir uma conta com esse email, enviámos-te um link de recuperação.");
+      setRecuperacaoAberta(false);
+      setEmailRecuperacao("");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Não foi possível enviar o email.");
+    } finally {
+      setAEnviarRecuperacao(false);
     }
   }
 
@@ -203,6 +233,18 @@ function AuthPage() {
                 required
               />
             </div>
+            {!registo && (
+              <button
+                type="button"
+                className="text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+                onClick={() => {
+                  setEmailRecuperacao(email);
+                  setRecuperacaoAberta(true);
+                }}
+              >
+                Esqueci-me da palavra-passe
+              </button>
+            )}
             <Button type="submit" className="w-full" disabled={aCarregar}>
               {registo ? "Criar conta" : "Entrar"}
             </Button>
@@ -226,6 +268,36 @@ function AuthPage() {
           </Button>
         </CardContent>
       </Card>
+
+      <Dialog open={recuperacaoAberta} onOpenChange={setRecuperacaoAberta}>
+        <DialogContent>
+          <form onSubmit={pedirRecuperacao}>
+            <DialogHeader>
+              <DialogTitle>Recuperar palavra-passe</DialogTitle>
+              <DialogDescription>
+                Escreve o teu email e enviamos-te um link para definires uma nova palavra-passe.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-2 py-4">
+              <Label htmlFor="email-recuperacao">Email</Label>
+              <Input
+                id="email-recuperacao"
+                type="email"
+                value={emailRecuperacao}
+                onChange={(e) => setEmailRecuperacao(e.target.value)}
+                maxLength={255}
+                required
+                autoFocus
+              />
+            </div>
+            <DialogFooter>
+              <Button type="submit" disabled={aEnviarRecuperacao}>
+                Enviar link
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -433,6 +433,12 @@ export const atualizarCandidatura = createServerFn({ method: "POST" })
       .update({ estado: data.estado })
       .eq("id", data.id);
     if (error) throw new Error(error.message);
+
+    if (data.estado === "aceite" || data.estado === "recusada") {
+      const { notificarDecisaoCandidatura } = await import("./notificacoes.server");
+      await notificarDecisaoCandidatura(data.id, data.estado);
+    }
+
     return { ok: true };
   });
 
@@ -460,6 +466,10 @@ export const confirmarTurnoEmpresa = createServerFn({ method: "POST" })
       _lado: "empresa",
     });
     if (error) throw new Error(error.message);
+
+    const { notificarTurnoConfirmado } = await import("./notificacoes.server");
+    await notificarTurnoConfirmado(data.applicationId, "empresa");
+
     return { ok: true };
   });
 
@@ -482,5 +492,9 @@ export const avaliarTrabalhador = createServerFn({ method: "POST" })
       _comentario: data.comentario,
     });
     if (error) throw new Error(error.message);
+
+    const { notificarAvaliacaoRecebida } = await import("./notificacoes.server");
+    await notificarAvaliacaoRecebida(data.applicationId, "empresa");
+
     return { ok: true };
   });

@@ -12,7 +12,9 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as NovaPalavraPasseRouteImport } from './routes/nova-palavra-passe'
 import { Route as OfertasIndexRouteImport } from './routes/ofertas/index'
+import { Route as OfertasIdRouteImport } from './routes/ofertas/$id'
 import { Route as TrabalhadoresIndexRouteImport } from './routes/trabalhadores/index'
 import { Route as AuthenticatedEmpresaIndexRouteImport } from './routes/_authenticated/empresa/index'
 import { Route as AuthenticatedEmpresaCreditosRouteImport } from './routes/_authenticated/empresa/creditos'
@@ -36,9 +38,19 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const NovaPalavraPasseRoute = NovaPalavraPasseRouteImport.update({
+  id: '/nova-palavra-passe',
+  path: '/nova-palavra-passe',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const OfertasIndexRoute = OfertasIndexRouteImport.update({
   id: '/ofertas/',
   path: '/ofertas/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OfertasIdRoute = OfertasIdRouteImport.update({
+  id: '/ofertas/$id',
+  path: '/ofertas/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TrabalhadoresIndexRoute = TrabalhadoresIndexRouteImport.update({
@@ -92,6 +104,8 @@ const AuthenticatedTrabalhadorPerfilRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/nova-palavra-passe': typeof NovaPalavraPasseRoute
+  '/ofertas/$id': typeof OfertasIdRoute
   '/ofertas/': typeof OfertasIndexRoute
   '/trabalhadores/': typeof TrabalhadoresIndexRoute
   '/empresa/creditos': typeof AuthenticatedEmpresaCreditosRoute
@@ -105,6 +119,8 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/nova-palavra-passe': typeof NovaPalavraPasseRoute
+  '/ofertas/$id': typeof OfertasIdRoute
   '/ofertas': typeof OfertasIndexRoute
   '/trabalhadores': typeof TrabalhadoresIndexRoute
   '/empresa/creditos': typeof AuthenticatedEmpresaCreditosRoute
@@ -120,6 +136,8 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/nova-palavra-passe': typeof NovaPalavraPasseRoute
+  '/ofertas/$id': typeof OfertasIdRoute
   '/ofertas/': typeof OfertasIndexRoute
   '/trabalhadores/': typeof TrabalhadoresIndexRoute
   '/_authenticated/empresa/creditos': typeof AuthenticatedEmpresaCreditosRoute
@@ -135,6 +153,8 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/nova-palavra-passe'
+    | '/ofertas/$id'
     | '/ofertas/'
     | '/trabalhadores/'
     | '/empresa/creditos'
@@ -148,6 +168,8 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/nova-palavra-passe'
+    | '/ofertas/$id'
     | '/ofertas'
     | '/trabalhadores'
     | '/empresa/creditos'
@@ -162,6 +184,8 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/nova-palavra-passe'
+    | '/ofertas/$id'
     | '/ofertas/'
     | '/trabalhadores/'
     | '/_authenticated/empresa/creditos'
@@ -177,6 +201,8 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  NovaPalavraPasseRoute: typeof NovaPalavraPasseRoute
+  OfertasIdRoute: typeof OfertasIdRoute
   OfertasIndexRoute: typeof OfertasIndexRoute
   TrabalhadoresIndexRoute: typeof TrabalhadoresIndexRoute
 }
@@ -204,11 +230,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/nova-palavra-passe': {
+      id: '/nova-palavra-passe'
+      path: '/nova-palavra-passe'
+      fullPath: '/nova-palavra-passe'
+      preLoaderRoute: typeof NovaPalavraPasseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/ofertas/': {
       id: '/ofertas/'
       path: '/ofertas'
       fullPath: '/ofertas/'
       preLoaderRoute: typeof OfertasIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ofertas/$id': {
+      id: '/ofertas/$id'
+      path: '/ofertas/$id'
+      fullPath: '/ofertas/$id'
+      preLoaderRoute: typeof OfertasIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/trabalhadores/': {
@@ -297,6 +337,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  NovaPalavraPasseRoute: NovaPalavraPasseRoute,
+  OfertasIdRoute: OfertasIdRoute,
   OfertasIndexRoute: OfertasIndexRoute,
   TrabalhadoresIndexRoute: TrabalhadoresIndexRoute,
 }
