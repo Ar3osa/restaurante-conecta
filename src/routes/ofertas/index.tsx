@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
@@ -131,7 +131,15 @@ function Ofertas() {
                 <CardContent className="flex flex-1 flex-col gap-3 pt-6">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <h2 className="font-semibold leading-tight">{o.titulo}</h2>
+                      <h2 className="font-semibold leading-tight">
+                        <Link
+                          to="/ofertas/$id"
+                          params={{ id: o.id }}
+                          className="hover:text-primary hover:underline"
+                        >
+                          {o.titulo}
+                        </Link>
+                      </h2>
                       <p className="text-sm text-muted-foreground">{empresa?.nome}</p>
                     </div>
                     <div className="flex flex-col items-end gap-1">
@@ -163,9 +171,14 @@ function Ofertas() {
                     <p className="line-clamp-3 text-sm text-muted-foreground">{o.descricao}</p>
                   )}
 
-                  <div className="mt-auto pt-2">
+                  <div className="mt-auto flex gap-2 pt-2">
                     <Button size="sm" onClick={() => abrirCandidatura(o)}>
                       Candidatar
+                    </Button>
+                    <Button size="sm" variant="outline" asChild>
+                      <Link to="/ofertas/$id" params={{ id: o.id }}>
+                        Ver detalhe
+                      </Link>
                     </Button>
                   </div>
                 </CardContent>

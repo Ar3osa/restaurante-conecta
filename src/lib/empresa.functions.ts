@@ -1,11 +1,13 @@
 import { createServerFn } from "@tanstack/react-start";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import type { Database } from "@/integrations/supabase/types";
 import { validarNif } from "./nif";
 import { DISTRITOS } from "./pt";
 
 async function empresaDoUtilizador(
-  supabase: { from: (t: string) => any },
+  supabase: SupabaseClient<Database>,
   userId: string,
 ): Promise<{ id: string } | null> {
   const { data } = await supabase
@@ -40,7 +42,10 @@ export const criarEmpresa = createServerFn({ method: "POST" })
     z
       .object({
         nome: z.string().trim().min(2).max(100),
-        nif: z.string().trim().regex(/^[0-9]{9}$/, "NIF inválido"),
+        nif: z
+          .string()
+          .trim()
+          .regex(/^[0-9]{9}$/, "NIF inválido"),
         tipo: z.enum(["restaurante", "bar", "cafe", "hotel", "catering", "outro"]),
         concelho: z.string().trim().min(2).max(80),
         morada: z.string().trim().max(160),
@@ -56,7 +61,10 @@ export const criarEmpresa = createServerFn({ method: "POST" })
 
     const p = await supabase
       .from("profiles")
-      .upsert({ id: userId, nome: data.responsavel, telefone: data.telefone }, { onConflict: "id" });
+      .upsert(
+        { id: userId, nome: data.responsavel, telefone: data.telefone },
+        { onConflict: "id" },
+      );
     if (p.error) throw new Error(p.error.message);
 
     const existente = await empresaDoUtilizador(supabase, userId);
@@ -83,15 +91,18 @@ export const criarEmpresa = createServerFn({ method: "POST" })
         descricao: data.descricao,
       });
       if (error) {
-        if (error.code === "23505") throw new Error("Já existe uma empresa registada com este NIF.");
+        if (error.code === "23505")
+          throw new Error("Já existe uma empresa registada com este NIF.");
         throw new Error(error.message);
       }
     }
 
-    await supabase.from("user_roles").upsert(
-      { user_id: userId, role: "empregador" as const },
-      { onConflict: "user_id,role", ignoreDuplicates: true },
-    );
+    await supabase
+      .from("user_roles")
+      .upsert(
+        { user_id: userId, role: "empregador" as const },
+        { onConflict: "user_id,role", ignoreDuplicates: true },
+      );
     return { ok: true };
   });
 
@@ -113,12 +124,15 @@ export type ResultadoTrabalhador = {
 };
 
 /** score = destaque pago (200) + procura ativa (100) + reputação (0–5) */
-function pontuacaoRanking(w: { procura_ativa: boolean; destaque_pago: boolean }, reputacao: number | null) {
+function pontuacaoRanking(
+  w: { procura_ativa: boolean; destaque_pago: boolean },
+  reputacao: number | null,
+) {
   return (w.destaque_pago ? 200 : 0) + (w.procura_ativa ? 100 : 0) + (reputacao ?? 0);
 }
 
 async function reputacaoPorTrabalhador(
-  supabase: { from: (t: string) => any },
+  supabase: SupabaseClient<Database>,
   workerIds: string[],
 ): Promise<Map<string, number>> {
   if (workerIds.length === 0) return new Map();
@@ -180,7 +194,9 @@ export const procurarTrabalhadores = createServerFn({ method: "GET" })
       desbloqueados = (unlocks ?? []).map((u: { worker_id: string }) => u.worker_id);
     }
 
-    const lista = (rows ?? []).filter((r: { user_id: string }) => r.user_id !== userId) as ResultadoTrabalhador[];
+    const lista = (rows ?? []).filter(
+      (r: { user_id: string }) => r.user_id !== userId,
+    ) as ResultadoTrabalhador[];
     const reputacoes = await reputacaoPorTrabalhador(
       supabase,
       lista.map((r) => r.user_id),
@@ -280,7 +296,10 @@ export const criarOferta = createServerFn({ method: "POST" })
         descricao: z.string().trim().max(800),
       })
       .refine(
-        (v) => v.remuneracaoMin == null || v.remuneracaoMax == null || v.remuneracaoMin <= v.remuneracaoMax,
+        (v) =>
+          v.remuneracaoMin == null ||
+          v.remuneracaoMax == null ||
+          v.remuneracaoMin <= v.remuneracaoMax,
         { message: "O valor mínimo não pode ser maior que o máximo." },
       )
       .parse(input),
@@ -362,7 +381,10 @@ export const candidaturasRecebidas = createServerFn({ method: "GET" })
     const workerIds = [...new Set((data ?? []).map((a: { worker_id: string }) => a.worker_id))];
     const applicationIds = (data ?? []).map((a: { id: string }) => a.id);
     const [{ data: perfis }, { data: avaliacoes }] = await Promise.all([
-      supabase.from("worker_profiles").select("user_id, nome_publico, titulo, foco").in("user_id", workerIds),
+      supabase
+        .from("worker_profiles")
+        .select("user_id, nome_publico, titulo, foco")
+        .in("user_id", workerIds),
       supabase
         .from("job_ratings")
         .select("job_application_id, rated_stars")
@@ -411,6 +433,12 @@ export const atualizarCandidatura = createServerFn({ method: "POST" })
       .update({ estado: data.estado })
       .eq("id", data.id);
     if (error) throw new Error(error.message);
+
+    if (data.estado === "aceite" || data.estado === "recusada") {
+      const { notificarDecisaoCandidatura } = await import("./notificacoes.server");
+      await notificarDecisaoCandidatura(data.id, data.estado);
+    }
+
     return { ok: true };
   });
 
@@ -438,6 +466,10 @@ export const confirmarTurnoEmpresa = createServerFn({ method: "POST" })
       _lado: "empresa",
     });
     if (error) throw new Error(error.message);
+
+    const { notificarTurnoConfirmado } = await import("./notificacoes.server");
+    await notificarTurnoConfirmado(data.applicationId, "empresa");
+
     return { ok: true };
   });
 
@@ -460,5 +492,9 @@ export const avaliarTrabalhador = createServerFn({ method: "POST" })
       _comentario: data.comentario,
     });
     if (error) throw new Error(error.message);
+
+    const { notificarAvaliacaoRecebida } = await import("./notificacoes.server");
+    await notificarAvaliacaoRecebida(data.applicationId, "empresa");
+
     return { ok: true };
   });

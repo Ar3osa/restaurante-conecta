@@ -184,6 +184,10 @@ export const confirmarTurnoTrabalhador = createServerFn({ method: "POST" })
       _lado: "trabalhador",
     });
     if (error) throw new Error(error.message);
+
+    const { notificarTurnoConfirmado } = await import("./notificacoes.server");
+    await notificarTurnoConfirmado(data.applicationId, "trabalhador");
+
     return { ok: true };
   });
 
@@ -206,6 +210,10 @@ export const avaliarEmpresa = createServerFn({ method: "POST" })
       _comentario: data.comentario,
     });
     if (error) throw new Error(error.message);
+
+    const { notificarAvaliacaoRecebida } = await import("./notificacoes.server");
+    await notificarAvaliacaoRecebida(data.applicationId, "trabalhador");
+
     return { ok: true };
   });
 
@@ -224,5 +232,9 @@ export const candidatar = createServerFn({ method: "POST" })
       if (error.code === "23505") throw new Error("Já te candidataste a esta oferta.");
       throw new Error(error.message);
     }
+
+    const { notificarCandidaturaRecebida } = await import("./notificacoes.server");
+    await notificarCandidaturaRecebida(data.jobId, context.userId);
+
     return { ok: true };
   });

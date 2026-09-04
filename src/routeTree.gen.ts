@@ -9,36 +9,38 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as AuthRouteImport } from './routes/auth'
-import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as TrabalhadoresIndexRouteImport } from './routes/trabalhadores/index'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as NovaPalavraPasseRouteImport } from './routes/nova-palavra-passe'
 import { Route as OfertasIndexRouteImport } from './routes/ofertas/index'
-import { Route as AuthenticatedTrabalhadorIndexRouteImport } from './routes/_authenticated/trabalhador/index'
+import { Route as OfertasIdRouteImport } from './routes/ofertas/$id'
+import { Route as TrabalhadoresIndexRouteImport } from './routes/trabalhadores/index'
 import { Route as AuthenticatedEmpresaIndexRouteImport } from './routes/_authenticated/empresa/index'
-import { Route as AuthenticatedTrabalhadorPerfilRouteImport } from './routes/_authenticated/trabalhador/perfil'
-import { Route as AuthenticatedEmpresaRegistoRouteImport } from './routes/_authenticated/empresa/registo'
-import { Route as AuthenticatedEmpresaProcurarRouteImport } from './routes/_authenticated/empresa/procurar'
-import { Route as AuthenticatedEmpresaNovaOfertaRouteImport } from './routes/_authenticated/empresa/nova-oferta'
 import { Route as AuthenticatedEmpresaCreditosRouteImport } from './routes/_authenticated/empresa/creditos'
+import { Route as AuthenticatedEmpresaNovaOfertaRouteImport } from './routes/_authenticated/empresa/nova-oferta'
+import { Route as AuthenticatedEmpresaProcurarRouteImport } from './routes/_authenticated/empresa/procurar'
+import { Route as AuthenticatedEmpresaRegistoRouteImport } from './routes/_authenticated/empresa/registo'
+import { Route as AuthenticatedTrabalhadorIndexRouteImport } from './routes/_authenticated/trabalhador/index'
+import { Route as AuthenticatedTrabalhadorPerfilRouteImport } from './routes/_authenticated/trabalhador/perfil'
 
-const AuthRoute = AuthRouteImport.update({
-  id: '/auth',
-  path: '/auth',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TrabalhadoresIndexRoute = TrabalhadoresIndexRouteImport.update({
-  id: '/trabalhadores/',
-  path: '/trabalhadores/',
+const NovaPalavraPasseRoute = NovaPalavraPasseRouteImport.update({
+  id: '/nova-palavra-passe',
+  path: '/nova-palavra-passe',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OfertasIndexRoute = OfertasIndexRouteImport.update({
@@ -46,40 +48,20 @@ const OfertasIndexRoute = OfertasIndexRouteImport.update({
   path: '/ofertas/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedTrabalhadorIndexRoute =
-  AuthenticatedTrabalhadorIndexRouteImport.update({
-    id: '/trabalhador/',
-    path: '/trabalhador/',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
+const OfertasIdRoute = OfertasIdRouteImport.update({
+  id: '/ofertas/$id',
+  path: '/ofertas/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TrabalhadoresIndexRoute = TrabalhadoresIndexRouteImport.update({
+  id: '/trabalhadores/',
+  path: '/trabalhadores/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedEmpresaIndexRoute =
   AuthenticatedEmpresaIndexRouteImport.update({
     id: '/empresa/',
     path: '/empresa/',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedTrabalhadorPerfilRoute =
-  AuthenticatedTrabalhadorPerfilRouteImport.update({
-    id: '/trabalhador/perfil',
-    path: '/trabalhador/perfil',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedEmpresaRegistoRoute =
-  AuthenticatedEmpresaRegistoRouteImport.update({
-    id: '/empresa/registo',
-    path: '/empresa/registo',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedEmpresaProcurarRoute =
-  AuthenticatedEmpresaProcurarRouteImport.update({
-    id: '/empresa/procurar',
-    path: '/empresa/procurar',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedEmpresaNovaOfertaRoute =
-  AuthenticatedEmpresaNovaOfertaRouteImport.update({
-    id: '/empresa/nova-oferta',
-    path: '/empresa/nova-oferta',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedEmpresaCreditosRoute =
@@ -88,10 +70,42 @@ const AuthenticatedEmpresaCreditosRoute =
     path: '/empresa/creditos',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedEmpresaNovaOfertaRoute =
+  AuthenticatedEmpresaNovaOfertaRouteImport.update({
+    id: '/empresa/nova-oferta',
+    path: '/empresa/nova-oferta',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedEmpresaProcurarRoute =
+  AuthenticatedEmpresaProcurarRouteImport.update({
+    id: '/empresa/procurar',
+    path: '/empresa/procurar',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedEmpresaRegistoRoute =
+  AuthenticatedEmpresaRegistoRouteImport.update({
+    id: '/empresa/registo',
+    path: '/empresa/registo',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedTrabalhadorIndexRoute =
+  AuthenticatedTrabalhadorIndexRouteImport.update({
+    id: '/trabalhador/',
+    path: '/trabalhador/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedTrabalhadorPerfilRoute =
+  AuthenticatedTrabalhadorPerfilRouteImport.update({
+    id: '/trabalhador/perfil',
+    path: '/trabalhador/perfil',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/nova-palavra-passe': typeof NovaPalavraPasseRoute
+  '/ofertas/$id': typeof OfertasIdRoute
   '/ofertas/': typeof OfertasIndexRoute
   '/trabalhadores/': typeof TrabalhadoresIndexRoute
   '/empresa/creditos': typeof AuthenticatedEmpresaCreditosRoute
@@ -105,6 +119,8 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/nova-palavra-passe': typeof NovaPalavraPasseRoute
+  '/ofertas/$id': typeof OfertasIdRoute
   '/ofertas': typeof OfertasIndexRoute
   '/trabalhadores': typeof TrabalhadoresIndexRoute
   '/empresa/creditos': typeof AuthenticatedEmpresaCreditosRoute
@@ -120,6 +136,8 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/nova-palavra-passe': typeof NovaPalavraPasseRoute
+  '/ofertas/$id': typeof OfertasIdRoute
   '/ofertas/': typeof OfertasIndexRoute
   '/trabalhadores/': typeof TrabalhadoresIndexRoute
   '/_authenticated/empresa/creditos': typeof AuthenticatedEmpresaCreditosRoute
@@ -135,6 +153,8 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/nova-palavra-passe'
+    | '/ofertas/$id'
     | '/ofertas/'
     | '/trabalhadores/'
     | '/empresa/creditos'
@@ -148,6 +168,8 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/nova-palavra-passe'
+    | '/ofertas/$id'
     | '/ofertas'
     | '/trabalhadores'
     | '/empresa/creditos'
@@ -162,6 +184,8 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/nova-palavra-passe'
+    | '/ofertas/$id'
     | '/ofertas/'
     | '/trabalhadores/'
     | '/_authenticated/empresa/creditos'
@@ -177,17 +201,19 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  NovaPalavraPasseRoute: typeof NovaPalavraPasseRoute
+  OfertasIdRoute: typeof OfertasIdRoute
   OfertasIndexRoute: typeof OfertasIndexRoute
   TrabalhadoresIndexRoute: typeof TrabalhadoresIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/auth': {
-      id: '/auth'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -197,18 +223,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/trabalhadores/': {
-      id: '/trabalhadores/'
-      path: '/trabalhadores'
-      fullPath: '/trabalhadores/'
-      preLoaderRoute: typeof TrabalhadoresIndexRouteImport
+    '/nova-palavra-passe': {
+      id: '/nova-palavra-passe'
+      path: '/nova-palavra-passe'
+      fullPath: '/nova-palavra-passe'
+      preLoaderRoute: typeof NovaPalavraPasseRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/ofertas/': {
@@ -218,12 +244,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OfertasIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/trabalhador/': {
-      id: '/_authenticated/trabalhador/'
-      path: '/trabalhador'
-      fullPath: '/trabalhador/'
-      preLoaderRoute: typeof AuthenticatedTrabalhadorIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+    '/ofertas/$id': {
+      id: '/ofertas/$id'
+      path: '/ofertas/$id'
+      fullPath: '/ofertas/$id'
+      preLoaderRoute: typeof OfertasIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/trabalhadores/': {
+      id: '/trabalhadores/'
+      path: '/trabalhadores'
+      fullPath: '/trabalhadores/'
+      preLoaderRoute: typeof TrabalhadoresIndexRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/empresa/': {
       id: '/_authenticated/empresa/'
@@ -232,25 +265,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedEmpresaIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/trabalhador/perfil': {
-      id: '/_authenticated/trabalhador/perfil'
-      path: '/trabalhador/perfil'
-      fullPath: '/trabalhador/perfil'
-      preLoaderRoute: typeof AuthenticatedTrabalhadorPerfilRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/empresa/registo': {
-      id: '/_authenticated/empresa/registo'
-      path: '/empresa/registo'
-      fullPath: '/empresa/registo'
-      preLoaderRoute: typeof AuthenticatedEmpresaRegistoRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/empresa/procurar': {
-      id: '/_authenticated/empresa/procurar'
-      path: '/empresa/procurar'
-      fullPath: '/empresa/procurar'
-      preLoaderRoute: typeof AuthenticatedEmpresaProcurarRouteImport
+    '/_authenticated/empresa/creditos': {
+      id: '/_authenticated/empresa/creditos'
+      path: '/empresa/creditos'
+      fullPath: '/empresa/creditos'
+      preLoaderRoute: typeof AuthenticatedEmpresaCreditosRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/empresa/nova-oferta': {
@@ -260,11 +279,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedEmpresaNovaOfertaRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/empresa/creditos': {
-      id: '/_authenticated/empresa/creditos'
-      path: '/empresa/creditos'
-      fullPath: '/empresa/creditos'
-      preLoaderRoute: typeof AuthenticatedEmpresaCreditosRouteImport
+    '/_authenticated/empresa/procurar': {
+      id: '/_authenticated/empresa/procurar'
+      path: '/empresa/procurar'
+      fullPath: '/empresa/procurar'
+      preLoaderRoute: typeof AuthenticatedEmpresaProcurarRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/empresa/registo': {
+      id: '/_authenticated/empresa/registo'
+      path: '/empresa/registo'
+      fullPath: '/empresa/registo'
+      preLoaderRoute: typeof AuthenticatedEmpresaRegistoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/trabalhador/': {
+      id: '/_authenticated/trabalhador/'
+      path: '/trabalhador'
+      fullPath: '/trabalhador/'
+      preLoaderRoute: typeof AuthenticatedTrabalhadorIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/trabalhador/perfil': {
+      id: '/_authenticated/trabalhador/perfil'
+      path: '/trabalhador/perfil'
+      fullPath: '/trabalhador/perfil'
+      preLoaderRoute: typeof AuthenticatedTrabalhadorPerfilRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
   }
@@ -297,9 +337,21 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  NovaPalavraPasseRoute: NovaPalavraPasseRoute,
+  OfertasIdRoute: OfertasIdRoute,
   OfertasIndexRoute: OfertasIndexRoute,
   TrabalhadoresIndexRoute: TrabalhadoresIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
