@@ -30,6 +30,12 @@ export const Route = createFileRoute("/trabalhadores/")({
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      // Os perfis são de pessoas reais: ficam visíveis a quem visita o site,
+      // mas fora dos motores de busca. Quem se inscreve para arranjar turnos
+      // não está a consentir aparecer numa pesquisa do Google pelo seu nome.
+      // Nota: não bloquear esta página no robots.txt — se o robô não puder
+      // visitá-la, também não chega a ler este noindex.
+      { name: "robots", content: "noindex, follow" },
     ],
   }),
   component: TrabalhadoresPublico,
