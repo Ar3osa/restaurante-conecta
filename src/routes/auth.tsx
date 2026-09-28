@@ -3,12 +3,19 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { UtensilsCrossed } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
 type Papel = "trabalhador" | "empregador";
@@ -49,6 +56,9 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [nome, setNome] = useState("");
   const [aCarregar, setACarregar] = useState(false);
+  const [recuperacaoAberta, setRecuperacaoAberta] = useState(false);
+  const [emailRecuperacao, setEmailRecuperacao] = useState("");
+  const [aEnviarRecuperacao, setAEnviarRecuperacao] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -100,19 +110,37 @@ function AuthPage() {
     }
   }
 
+  async function pedirRecuperacao(e: React.FormEvent) {
+    e.preventDefault();
+    setAEnviarRecuperacao(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(emailRecuperacao, {
+        redirectTo: `${window.location.origin}/nova-palavra-passe`,
+      });
+      if (error) throw error;
+      // Não revelamos se o email existe ou não — a mensagem é a mesma nos dois casos.
+      toast.success("Se existir uma conta com esse email, enviámos-te um link de recuperação.");
+      setRecuperacaoAberta(false);
+      setEmailRecuperacao("");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Não foi possível enviar o email.");
+    } finally {
+      setAEnviarRecuperacao(false);
+    }
+  }
+
   async function entrarComGoogle() {
     setACarregar(true);
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
+    // Supabase redirects the whole page to Google and back — on success the
+    // browser navigates away, so there is no local success branch here.
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: `${window.location.origin}/auth` },
     });
-    if (result.error) {
+    if (error) {
       setACarregar(false);
       toast.error("Não foi possível entrar com o Google.");
-      return;
     }
-    if (result.redirected) return;
-    await encaminhar();
-    setACarregar(false);
   }
 
   return (
@@ -134,7 +162,10 @@ function AuthPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-5">
-          <Tabs value={registo ? "registo" : "entrar"} onValueChange={(v) => setRegisto(v === "registo")}>
+          <Tabs
+            value={registo ? "registo" : "entrar"}
+            onValueChange={(v) => setRegisto(v === "registo")}
+          >
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="entrar">Entrar</TabsTrigger>
               <TabsTrigger value="registo">Criar conta</TabsTrigger>
@@ -145,12 +176,10 @@ function AuthPage() {
             <div className="space-y-2">
               <Label>Vou usar a Mesa como</Label>
               <div className="grid grid-cols-2 gap-2">
-                {(
-                  [
-                    { v: "trabalhador" as const, t: "Trabalhador" },
-                    { v: "empregador" as const, t: "Restaurante / bar" },
-                  ]
-                ).map((op) => (
+                {[
+                  { v: "trabalhador" as const, t: "Trabalhador" },
+                  { v: "empregador" as const, t: "Restaurante / bar" },
+                ].map((op) => (
                   <button
                     key={op.v}
                     type="button"
@@ -204,6 +233,18 @@ function AuthPage() {
                 required
               />
             </div>
+            {!registo && (
+              <button
+                type="button"
+                className="text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+                onClick={() => {
+                  setEmailRecuperacao(email);
+                  setRecuperacaoAberta(true);
+                }}
+              >
+                Esqueci-me da palavra-passe
+              </button>
+            )}
             <Button type="submit" className="w-full" disabled={aCarregar}>
               {registo ? "Criar conta" : "Entrar"}
             </Button>
@@ -227,6 +268,36 @@ function AuthPage() {
           </Button>
         </CardContent>
       </Card>
+
+      <Dialog open={recuperacaoAberta} onOpenChange={setRecuperacaoAberta}>
+        <DialogContent>
+          <form onSubmit={pedirRecuperacao}>
+            <DialogHeader>
+              <DialogTitle>Recuperar palavra-passe</DialogTitle>
+              <DialogDescription>
+                Escreve o teu email e enviamos-te um link para definires uma nova palavra-passe.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-2 py-4">
+              <Label htmlFor="email-recuperacao">Email</Label>
+              <Input
+                id="email-recuperacao"
+                type="email"
+                value={emailRecuperacao}
+                onChange={(e) => setEmailRecuperacao(e.target.value)}
+                maxLength={255}
+                required
+                autoFocus
+              />
+            </div>
+            <DialogFooter>
+              <Button type="submit" disabled={aEnviarRecuperacao}>
+                Enviar link
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

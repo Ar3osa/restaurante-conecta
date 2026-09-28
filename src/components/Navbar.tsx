@@ -3,6 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { UtensilsCrossed, LogOut, Menu } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { usePapeis } from "@/hooks/useAuth";
+import { Notificacoes } from "@/components/Notificacoes";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -50,6 +51,8 @@ export function Navbar() {
         </nav>
 
         <div className="flex items-center gap-2">
+          {user && <Notificacoes />}
+
           {/* Menu de navegação em mobile */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild className="md:hidden">

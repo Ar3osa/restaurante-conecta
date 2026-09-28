@@ -261,6 +261,39 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          corpo: string
+          created_at: string
+          id: string
+          lida: boolean
+          tipo: Database["public"]["Enums"]["notification_type"]
+          titulo: string
+          url: string
+          user_id: string
+        }
+        Insert: {
+          corpo?: string
+          created_at?: string
+          id?: string
+          lida?: boolean
+          tipo: Database["public"]["Enums"]["notification_type"]
+          titulo: string
+          url?: string
+          user_id: string
+        }
+        Update: {
+          corpo?: string
+          created_at?: string
+          id?: string
+          lida?: boolean
+          tipo?: Database["public"]["Enums"]["notification_type"]
+          titulo?: string
+          url?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -509,6 +542,12 @@ export type Database = {
         | "outro"
       job_role: "bartender" | "servico_mesa" | "backoffice"
       job_status: "aberta" | "fechada"
+      notification_type:
+        | "candidatura_recebida"
+        | "candidatura_aceite"
+        | "candidatura_recusada"
+        | "turno_confirmado"
+        | "avaliacao_recebida"
       rater_role: "trabalhador" | "empresa"
     }
     CompositeTypes: {
@@ -649,6 +688,13 @@ export const Constants = {
       ],
       job_role: ["bartender", "servico_mesa", "backoffice"],
       job_status: ["aberta", "fechada"],
+      notification_type: [
+        "candidatura_recebida",
+        "candidatura_aceite",
+        "candidatura_recusada",
+        "turno_confirmado",
+        "avaliacao_recebida",
+      ],
       rater_role: ["trabalhador", "empresa"],
     },
   },
